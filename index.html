@@ -100,10 +100,37 @@
                 <div class="bg-gray-50 p-4 rounded">
                     <h4 class="font-medium mb-2">Average Age by Position</h4>
                     <canvas id="ageChart" width="400" height="200"></canvas>
+                    <h4 class="font-medium mb-2">Number Player by Role</h4>
+                    <canvas id="roleChart" width="400" height="200" class="hidden"></canvas>
                 </div>
+
+                
+
                 <div class="bg-gray-50 p-4 rounded">
                     <h4 class="font-medium mb-2">Players Distribution by Role</h4>
-                    <canvas id="roleChart" width="400" height="200"></canvas>
+                    <div class="flex items-center gap-2 mb-2">
+                        <label for="statSelect" class="text-sm">Show average by position:</label>
+                        <select id="statSelect" class="border border-gray-300 rounded px-2 py-1 text-sm">
+                            <option value="overall">Overall</option>
+                            <option value="potential">Potential</option>
+                            <option value="skills">Skills</option>
+                            <option value="weakFoot">Weak Foot</option>
+                            <option value="totalStats">Total Stats</option>
+                            <option value="value">Value</option>
+                            <option value="wage">Wage</option>
+                            <option value="appearances">Appearances</option>
+                            <option value="goals">Goals</option>
+                            <option value="assists">Assists</option>
+                            <option value="cleanSheets">Clean Sheets</option>
+                            <option value="yellowCards">Yellow Cards</option>
+                            <option value="redCards">Red Cards</option>
+                            <option value="avgRating">Avg Rating</option>
+                            <option value="nationality">Nationality (mode count)</option>
+                            <option value="foot">Preferred Foot (mode count)</option>
+                            <option value="contractEnd">Contract End (avg year)</option>
+                        </select>
+                    </div>
+                    <canvas id="positionStatChart" width="400" height="200"></canvas>
                 </div>
             </div>
         </section>

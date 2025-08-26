@@ -1,3 +1,308 @@
+
+/**
+ * Compute averages per position (role code) for a players object and return a map
+ * Includes these stats per position:
+ *  - nationality (most common), overall, potential, contractEnd (average date), skills,
+ *    weakFoot, foot (most common), totalStats, value, wage, appearances, goals,
+ *    assists, cleanSheets, yellowCards, redCards, avgRating
+ * Returns an object: { POS: { nationality: 'ENG', overall: x, ... }, ... }
+ */
+function computePositionAverages(players) {
+    const sums = {};
+    const counts = {};
+    const nationalityCounts = {};
+    const footCounts = {};
+    const contractSums = {};
+    const contractCounts = {};
+
+    Object.values(players).forEach(p => {
+        const pos = p.role || 'Unknown';
+        if (!sums[pos]) {
+            sums[pos] = {
+                nationality: {},
+                overall: 0,
+                potential: 0,
+                skills: 0,
+                weakFoot: 0,
+                totalStats: 0,
+                value: 0,
+                wage: 0,
+                appearances: 0,
+                goals: 0,
+                assists: 0,
+                cleanSheets: 0,
+                yellowCards: 0,
+                redCards: 0,
+                avgRating: 0
+            };
+            counts[pos] = 0;
+            nationalityCounts[pos] = {};
+            footCounts[pos] = {};
+            contractSums[pos] = 0;
+            contractCounts[pos] = 0;
+        }
+
+        // Numeric sums
+        sums[pos].overall += Number(p.overall) || 0;
+        sums[pos].potential += Number(p.potential) || 0;
+        sums[pos].skills += Number(p.skills) || 0;
+        sums[pos].weakFoot += Number(p.weakFoot) || 0;
+        sums[pos].totalStats += Number(p.totalStats) || 0;
+        sums[pos].value += Number(p.value) || 0;
+        sums[pos].wage += Number(p.wage) || 0;
+        sums[pos].appearances += Number(p.appearances) || 0;
+        sums[pos].goals += Number(p.goals) || 0;
+        sums[pos].assists += Number(p.assists) || 0;
+        sums[pos].cleanSheets += Number(p.cleanSheets) || 0;
+        sums[pos].yellowCards += Number(p.yellowCards) || 0;
+        sums[pos].redCards += Number(p.redCards) || 0;
+        sums[pos].avgRating += Number(p.avgRating) || 0;
+
+        // Nationality counts
+        const nat = p.nationality || 'Unknown';
+        nationalityCounts[pos][nat] = (nationalityCounts[pos][nat] || 0) + 1;
+
+        // Foot counts
+        const foot = p.foot || 'Unknown';
+        footCounts[pos][foot] = (footCounts[pos][foot] || 0) + 1;
+
+        // Contract average via timestamp
+        if (p.contractEnd) {
+            const ts = Date.parse(p.contractEnd);
+            if (!isNaN(ts)) {
+                contractSums[pos] += ts;
+                contractCounts[pos] += 1;
+            }
+        }
+
+        counts[pos] += 1;
+    });
+
+    const averages = {};
+    Object.keys(sums).forEach(pos => {
+        const c = counts[pos] || 1;
+        // determine most common nationality
+        const natCounts = nationalityCounts[pos] || {};
+        let topNat = 'N/A';
+        let topNatCount = 0;
+        Object.keys(natCounts).forEach(k => {
+            if (natCounts[k] > topNatCount) { topNat = k; topNatCount = natCounts[k]; }
+        });
+
+        // most common foot
+        const fCounts = footCounts[pos] || {};
+        let topFoot = 'N/A';
+        let topFootCount = 0;
+        Object.keys(fCounts).forEach(k => {
+            if (fCounts[k] > topFootCount) { topFoot = k; topFootCount = fCounts[k]; }
+        });
+
+        // average contract end as date string
+        let avgContract = null;
+        if (contractCounts[pos] > 0) {
+            const avgTs = Math.round(contractSums[pos] / contractCounts[pos]);
+            avgContract = new Date(avgTs).toISOString().split('T')[0];
+        }
+
+        averages[pos] = {
+            nationality: topNat,
+            nationalityCount: topNatCount,
+            overall: +(sums[pos].overall / c).toFixed(2),
+            potential: +(sums[pos].potential / c).toFixed(2),
+            contractEnd: avgContract,
+            skills: +(sums[pos].skills / c).toFixed(2),
+            weakFoot: +(sums[pos].weakFoot / c).toFixed(2),
+            foot: topFoot,
+            footCount: topFootCount,
+            totalStats: +(sums[pos].totalStats / c).toFixed(2),
+            value: +(sums[pos].value / c).toFixed(2),
+            wage: +(sums[pos].wage / c).toFixed(2),
+            appearances: +(sums[pos].appearances / c).toFixed(2),
+            goals: +(sums[pos].goals / c).toFixed(2),
+            assists: +(sums[pos].assists / c).toFixed(2),
+            cleanSheets: +(sums[pos].cleanSheets / c).toFixed(2),
+            yellowCards: +(sums[pos].yellowCards / c).toFixed(2),
+            redCards: +(sums[pos].redCards / c).toFixed(2),
+            avgRating: +(sums[pos].avgRating / c).toFixed(2)
+        };
+    });
+
+    return averages;
+}
+
+/**
+ * Compute averages aggregated by POSITION_GROUPS (e.g. Goalkeepers, Defenders, ...)
+ * Accepts players object (id -> player) and returns averages keyed by group name.
+ */
+function computeGroupAverages(players) {
+    const sums = {};
+    const counts = {};
+    const nationalityCounts = {};
+    const footCounts = {};
+    const contractSums = {};
+    const contractCounts = {};
+
+    Object.values(players).forEach(p => {
+        const group = getPositionGroup(p.role) || 'Unknown';
+        if (!sums[group]) {
+            sums[group] = {
+                overall: 0,
+                potential: 0,
+                skills: 0,
+                weakFoot: 0,
+                totalStats: 0,
+                value: 0,
+                wage: 0,
+                appearances: 0,
+                goals: 0,
+                assists: 0,
+                cleanSheets: 0,
+                yellowCards: 0,
+                redCards: 0,
+                avgRating: 0
+            };
+            counts[group] = 0;
+            nationalityCounts[group] = {};
+            footCounts[group] = {};
+            contractSums[group] = 0;
+            contractCounts[group] = 0;
+        }
+
+        sums[group].overall += Number(p.overall) || 0;
+        sums[group].potential += Number(p.potential) || 0;
+        sums[group].skills += Number(p.skills) || 0;
+        sums[group].weakFoot += Number(p.weakFoot) || 0;
+        sums[group].totalStats += Number(p.totalStats) || 0;
+        sums[group].value += Number(p.value) || 0;
+        sums[group].wage += Number(p.wage) || 0;
+        sums[group].appearances += Number(p.appearances) || 0;
+        sums[group].goals += Number(p.goals) || 0;
+        sums[group].assists += Number(p.assists) || 0;
+        sums[group].cleanSheets += Number(p.cleanSheets) || 0;
+        sums[group].yellowCards += Number(p.yellowCards) || 0;
+        sums[group].redCards += Number(p.redCards) || 0;
+        sums[group].avgRating += Number(p.avgRating) || 0;
+
+        const nat = p.nationality || 'Unknown';
+        nationalityCounts[group][nat] = (nationalityCounts[group][nat] || 0) + 1;
+
+        const foot = p.foot || 'Unknown';
+        footCounts[group][foot] = (footCounts[group][foot] || 0) + 1;
+
+        if (p.contractEnd) {
+            const ts = Date.parse(p.contractEnd);
+            if (!isNaN(ts)) { contractSums[group] += ts; contractCounts[group] += 1; }
+        }
+
+        counts[group] += 1;
+    });
+
+    const averages = {};
+    Object.keys(sums).forEach(group => {
+        const c = counts[group] || 1;
+
+        // nationality mode
+        const natCounts = nationalityCounts[group] || {};
+        let topNat = 'N/A', topNatCount = 0;
+        Object.keys(natCounts).forEach(k => { if (natCounts[k] > topNatCount) { topNat = k; topNatCount = natCounts[k]; } });
+
+        // foot mode
+        const fCounts = footCounts[group] || {};
+        let topFoot = 'N/A', topFootCount = 0;
+        Object.keys(fCounts).forEach(k => { if (fCounts[k] > topFootCount) { topFoot = k; topFootCount = fCounts[k]; } });
+
+        let avgContract = null;
+        if (contractCounts[group] > 0) {
+            const avgTs = Math.round(contractSums[group] / contractCounts[group]);
+            avgContract = new Date(avgTs).toISOString().split('T')[0];
+        }
+
+        averages[group] = {
+            nationality: topNat,
+            nationalityCount: topNatCount,
+            overall: +(sums[group].overall / c).toFixed(2),
+            potential: +(sums[group].potential / c).toFixed(2),
+            contractEnd: avgContract,
+            skills: +(sums[group].skills / c).toFixed(2),
+            weakFoot: +(sums[group].weakFoot / c).toFixed(2),
+            foot: topFoot,
+            footCount: topFootCount,
+            totalStats: +(sums[group].totalStats / c).toFixed(2),
+            value: +(sums[group].value / c).toFixed(2),
+            wage: +(sums[group].wage / c).toFixed(2),
+            appearances: +(sums[group].appearances / c).toFixed(2),
+            goals: +(sums[group].goals / c).toFixed(2),
+            assists: +(sums[group].assists / c).toFixed(2),
+            cleanSheets: +(sums[group].cleanSheets / c).toFixed(2),
+            yellowCards: +(sums[group].yellowCards / c).toFixed(2),
+            redCards: +(sums[group].redCards / c).toFixed(2),
+            avgRating: +(sums[group].avgRating / c).toFixed(2)
+        };
+    });
+
+    return averages;
+}
+
+/**
+ * Render position averages table into #roleAveragesContainer (keeps existing container id)
+ */
+function renderPositionAverages(players) {
+    const container = document.getElementById('roleAveragesContainer');
+    if (!container) return;
+
+    const averages = computeGroupAverages(players);
+    // Keep the order defined in POSITION_GROUPS, then append any extra groups
+    const orderedGroups = Object.keys(POSITION_GROUPS).filter(g => averages[g]);
+    const extraGroups = Object.keys(averages).filter(g => !orderedGroups.includes(g)).sort();
+    const positions = orderedGroups.concat(extraGroups);
+
+    if (positions.length === 0) {
+        container.innerHTML = '<div class="empty-state">No data available for position averages.</div>';
+        return;
+    }
+
+    // Build table with the 17 requested columns in the order provided by the user
+    let html = '<table class="min-w-full text-sm border-collapse">';
+    html += '<thead><tr class="text-left">';
+    html += '<th class="px-2 py-1">Position Group</th>'; // e.g. Goalkeepers, Defenders
+    html += '<th class="px-2 py-1">Nationality (mode)</th>';
+    html += '<th class="px-2 py-1">Overall</th>';
+    html += '<th class="px-2 py-1">Potential</th>';
+    html += '<th class="px-2 py-1">Contract End (avg)</th>';
+    html += '<th class="px-2 py-1">Skills</th>';
+    html += '<th class="px-2 py-1">Weak Foot</th>';
+    html += '<th class="px-2 py-1">Foot (mode)</th>';
+    html += '<th class="px-2 py-1">Total Stats</th>';
+    html += '<th class="px-2 py-1">Value</th>';
+    html += '<th class="px-2 py-1">Wage</th>';
+    html += '<th class="px-2 py-1">Appearances</th>';
+    html += '<th class="px-2 py-1">Goals</th>';
+    html += '<th class="px-2 py-1">Assists</th>';
+    html += '<th class="px-2 py-1">Clean Sheets</th>';
+    html += '<th class="px-2 py-1">Yellow Cards</th>';
+    html += '<th class="px-2 py-1">Red Cards</th>';
+    html += '<th class="px-2 py-1">Avg Rating</th>';
+    html += '</tr></thead>';
+    html += '<tbody>';
+
+    positions.forEach(pos => {
+        const a = averages[pos];
+        html += `<tr class="border-t"><td class="px-2 py-1">${pos}</td><td class="px-2 py-1">${a.nationality} (${a.nationalityCount})</td><td class="px-2 py-1">${a.overall}</td><td class="px-2 py-1">${a.potential}</td><td class="px-2 py-1">${a.contractEnd || 'N/A'}</td><td class="px-2 py-1">${a.skills}</td><td class="px-2 py-1">${a.weakFoot}</td><td class="px-2 py-1">${a.foot}</td><td class="px-2 py-1">${a.totalStats}</td><td class="px-2 py-1">${formatNumber(a.value)}</td><td class="px-2 py-1">${formatNumber(a.wage)}</td><td class="px-2 py-1">${a.appearances}</td><td class="px-2 py-1">${a.goals}</td><td class="px-2 py-1">${a.assists}</td><td class="px-2 py-1">${a.cleanSheets}</td><td class="px-2 py-1">${a.yellowCards}</td><td class="px-2 py-1">${a.redCards}</td><td class="px-2 py-1">${a.avgRating}</td></tr>`;
+    });
+
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+// Integrate position averages rendering into renderCharts flow
+const _origRenderCharts = renderCharts;
+renderCharts = function() {
+    _origRenderCharts && _origRenderCharts();
+
+    const season = getCurrentSeason();
+    const players = season && season.roster && season.roster[currentSquad] ? season.roster[currentSquad].players : {};
+    renderPositionAverages(players);
+};
 /**
  * CMutils - FC25 Career Mode Utility
  * Complete front-end application for managing football career mode data
@@ -18,6 +323,14 @@ const POSITION_GROUPS = {
     'Defenders': ['LB', 'CB', 'RB'],
     'Midfielders': ['CDM', 'LM', 'CM', 'RM', 'CAM'],
     'Forwards': ['LW', 'ST', 'RW']
+};
+
+// Color palette per position group (primary and lighter variant for record backgrounds)
+const GROUP_COLORS = {
+    'Goalkeepers': { color: '#FBBF24', light: '#FEF3C7' }, // Yellow
+    'Defenders': { color: '#10B981', light: '#ECFDF5' },   // Green
+    'Midfielders': { color: '#60A5FA', light: '#EFF6FF' }, // Light Blue/Blue
+    'Forwards': { color: '#EF4444', light: '#FEE2E2' }     // Red
 };
 
 // Currency symbols
@@ -57,6 +370,16 @@ function setupEventListeners() {
     // Charts
     document.getElementById('showChartsBtn').addEventListener('click', showCharts);
     document.getElementById('hideChartsBtn').addEventListener('click', hideCharts);
+    // Stat selector for position-based averages (if present)
+    const statSelect = document.getElementById('statSelect');
+    if (statSelect) {
+        statSelect.addEventListener('change', () => {
+            // re-render charts with new stat
+            if (document.getElementById('chartsPanel') && !document.getElementById('chartsPanel').classList.contains('hidden')) {
+                renderCharts();
+            }
+        });
+    }
 
     // Import/Export
     document.getElementById('exportBtn').addEventListener('click', exportData);
@@ -366,6 +689,10 @@ function renderPlayers() {
     `;
 
     setupDragAndDrop();
+    // If charts panel is visible, refresh charts to reflect current roster
+    if (document.getElementById('chartsPanel') && !document.getElementById('chartsPanel').classList.contains('hidden')) {
+        renderCharts();
+    }
 }
 
 /**
@@ -630,6 +957,10 @@ function reorderPlayers(draggedId, targetId) {
     season.roster[currentSquad].players = newPlayers;
     saveToStorage();
     renderPlayers();
+    // Refresh charts if visible
+    if (document.getElementById('chartsPanel') && !document.getElementById('chartsPanel').classList.contains('hidden')) {
+        renderCharts();
+    }
 }
 
 /**
@@ -653,6 +984,7 @@ function movePlayerUp(playerId) {
                 break;
             }
         }
+    // charts refreshed in reorderPlayers
     }
 }
 
@@ -677,6 +1009,7 @@ function movePlayerDown(playerId) {
                 break;
             }
         }
+    // charts refreshed in reorderPlayers
     }
 }
 
@@ -807,6 +1140,10 @@ function saveSeason() {
     renderSeasonTabs();
     renderPlayers();
     closeSeasonModal();
+
+    if (document.getElementById('chartsPanel') && !document.getElementById('chartsPanel').classList.contains('hidden')) {
+        renderCharts();
+    }
 }
 
 /**
@@ -828,6 +1165,9 @@ function deleteSeason(seasonId) {
         saveToStorage();
         renderSeasonTabs();
         renderPlayers();
+        if (document.getElementById('chartsPanel') && !document.getElementById('chartsPanel').classList.contains('hidden')) {
+            renderCharts();
+        }
     }
 }
 
@@ -942,6 +1282,10 @@ function savePlayer() {
     
     saveToStorage();
     renderPlayers();
+    // If charts panel is visible, refresh charts to reflect changes
+    if (document.getElementById('chartsPanel') && !document.getElementById('chartsPanel').classList.contains('hidden')) {
+        renderCharts();
+    }
     closePlayerModal();
 }
 
@@ -1069,6 +1413,9 @@ function promotePlayer(playerId) {
     normalizePlayerOrder(season, 'youth_academy');
         saveToStorage();
         renderPlayers();
+        if (document.getElementById('chartsPanel') && !document.getElementById('chartsPanel').classList.contains('hidden')) {
+            renderCharts();
+        }
         
     // Show success message
     alert(`${player.firstName} ${player.lastName} has been promoted to the main squad.`);
@@ -1104,6 +1451,72 @@ function renderCharts() {
     
     renderAgeChart(playersArray);
     renderRoleChart(playersArray);
+    // Position stat chart
+    renderPositionStatChart(playersArray);
+}
+
+/**
+ * Render average of selected stat by position (role code)
+ */
+function renderPositionStatChart(players) {
+    const select = document.getElementById('statSelect');
+    const stat = select ? select.value : 'overall';
+    const ctxEl = document.getElementById('positionStatChart');
+    if (!ctxEl) return;
+    const ctx = ctxEl.getContext('2d');
+
+    // destroy existing chart
+    if (charts.positionStatChart) charts.positionStatChart.destroy();
+
+    // compute averages per position
+    // compute group averages for position groups
+    const averages = computeGroupAverages(players.reduce((acc, p) => { acc[p.id || generateId()] = p; return acc; }, {}));
+    // Use POSITION_GROUPS order for labels so charts match other chart ordering
+    const labels = Object.keys(POSITION_GROUPS).filter(g => averages[g]);
+    // include any extra groups at the end
+    const extra = Object.keys(averages).filter(k => !labels.includes(k)).sort();
+    labels.push(...extra);
+    const data = [];
+    const bg = [];
+
+    labels.forEach(pos => {
+        const a = averages[pos];
+        let value = 0;
+        if (stat === 'nationality') {
+            value = a.nationalityCount || 0;
+        } else if (stat === 'foot') {
+            value = a.footCount || 0;
+        } else if (stat === 'contractEnd') {
+            // convert contractEnd avg to year number if available
+            value = a.contractEnd ? Number(a.contractEnd.split('-')[0]) : 0;
+        } else {
+            value = Number(a[stat]) || 0;
+        }
+
+    data.push(value);
+    // color by position group using GROUP_COLORS mapping
+    const color = GROUP_COLORS[pos] ? GROUP_COLORS[pos].color : '#9CA3AF';
+    bg.push(color);
+    });
+
+    charts.positionStatChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: `Average ${stat} by Position Group`,
+                data,
+                backgroundColor: bg,
+                borderColor: bg,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
 }
 
 /**
@@ -1134,8 +1547,8 @@ function renderAgeChart(players) {
             datasets: [{
                 label: 'Average Age',
                 data: Object.values(ageData),
-                backgroundColor: '#000000',
-                borderColor: '#666666',
+                backgroundColor: Object.keys(ageData).map(g => (GROUP_COLORS[g] ? GROUP_COLORS[g].color : '#9CA3AF')),
+                borderColor: Object.keys(ageData).map(g => (GROUP_COLORS[g] ? GROUP_COLORS[g].color : '#6B7280')),
                 borderWidth: 1
             }]
         },
@@ -1183,11 +1596,14 @@ function renderRoleChart(players) {
             labels: Object.keys(roleCounts),
             datasets: [{
                 data: Object.values(roleCounts),
-                backgroundColor: [
-                    '#000000', '#333333', '#666666', '#999999', '#cccccc',
-                    '#444444', '#777777', '#aaaaaa', '#dddddd', '#555555',
-                    '#888888', '#bbbbbb'
-                ],
+                // Map each role to its position group color, fallback to gray
+                backgroundColor: Object.keys(roleCounts).map(role => {
+                    // find which group contains this role
+                    for (const [groupName, positions] of Object.entries(POSITION_GROUPS)) {
+                        if (positions.includes(role)) return GROUP_COLORS[groupName].color;
+                    }
+                    return '#9CA3AF';
+                }),
                 borderWidth: 2,
                 borderColor: '#ffffff'
             }]
