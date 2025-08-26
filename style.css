@@ -234,6 +234,68 @@
     border-radius: 8px 8px 0 0;
 }
 
+/* Group colors */
+.group-goalkeepers .position-group-header,
+.group-goalkeepers .player-card,
+.players-table .group-goalkeepers .position-group-header {
+    background: linear-gradient(90deg, #fff9e6, #fff4cc);
+    border-color: #f6e58d;
+    color: #7a5a00;
+}
+.group-defenders .position-group-header,
+.group-defenders .player-card,
+.players-table .group-defenders .position-group-header {
+    background: linear-gradient(90deg, #ecfdf5, #d1fae5);
+    border-color: #86efac;
+    color: #064e3b;
+}
+.group-midfielders .position-group-header,
+.group-midfielders .player-card,
+.players-table .group-midfielders .position-group-header {
+    background: linear-gradient(90deg, #eef2ff, #e0e7ff);
+    border-color: #93c5fd;
+    color: #1e3a8a;
+}
+.group-forwards .position-group-header,
+.group-forwards .player-card,
+.players-table .group-forwards .position-group-header {
+    background: linear-gradient(90deg, #fff1f2, #ffe4e6);
+    border-color: #fca5a5;
+    color: #7f1d1d;
+}
+
+/* Lighter 'record' variants for rows/cards to indicate grouped records */
+.players-table .group-goalkeepers td,
+.player-card.group-goalkeepers {
+    background-color: rgba(255, 249, 230, 0.6);
+}
+.players-table .group-defenders td,
+.player-card.group-defenders {
+    background-color: rgba(236, 253, 245, 0.6);
+}
+.players-table .group-midfielders td,
+.player-card.group-midfielders {
+    background-color: rgba(238, 242, 255, 0.6);
+}
+.players-table .group-forwards td,
+.player-card.group-forwards {
+    background-color: rgba(255, 241, 242, 0.6);
+}
+
+/* Accent left border for headers in desktop table */
+.players-table .position-group-row.group-goalkeepers .position-group-header {
+    border-left: 6px solid #f6e58d;
+}
+.players-table .position-group-row.group-defenders .position-group-header {
+    border-left: 6px solid #86efac;
+}
+.players-table .position-group-row.group-midfielders .position-group-header {
+    border-left: 6px solid #93c5fd;
+}
+.players-table .position-group-row.group-forwards .position-group-header {
+    border-left: 6px solid #fca5a5;
+}
+
 /* Responsive utilities */
 @media (max-width: 640px) {
     .players-table {

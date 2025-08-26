@@ -402,15 +402,16 @@ function renderPlayersTable(groupedPlayers) {
 
     Object.entries(groupedPlayers).forEach(([groupName, players]) => {
         if (players.length > 0) {
+            const groupClass = 'group-' + groupName.toLowerCase().replace(/\s+/g, '-');
             html += `
-                <tr class="position-group-row">
+                <tr class="position-group-row ${groupClass}">
                     <td colspan="16" class="position-group-header">${groupName}</td>
                 </tr>
             `;
             
             players.forEach(player => {
                 html += `
-                    <tr draggable="true" data-player-id="${player.id}" data-position-group="${groupName}" class="player-row">
+                    <tr draggable="true" data-player-id="${player.id}" data-position-group="${groupName}" class="player-row ${groupClass}">
                         <td>
                             <div class="font-medium">${player.firstName} ${player.lastName}</div>
                             <div class="text-sm text-gray-500">${player.nationality || 'Unknown'}</div>
@@ -464,12 +465,13 @@ function renderPlayersCards(groupedPlayers) {
 
     Object.entries(groupedPlayers).forEach(([groupName, players]) => {
         if (players.length > 0) {
-            html += `<div class="position-group">`;
+            const groupClass = 'group-' + groupName.toLowerCase().replace(/\s+/g, '-');
+            html += `<div class="position-group ${groupClass}">`;
             html += `<div class="position-group-header">${groupName}</div>`;
             
             players.forEach(player => {
                 html += `
-                    <div class="player-card" draggable="true" data-player-id="${player.id}" data-position-group="${groupName}">
+                    <div class="player-card ${groupClass}" draggable="true" data-player-id="${player.id}" data-position-group="${groupName}">
                         <div class="flex justify-between items-start mb-2">
                             <div>
                                 <div class="font-semibold">${player.firstName} ${player.lastName}</div>
