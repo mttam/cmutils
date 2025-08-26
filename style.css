@@ -1,0 +1,298 @@
+/* Promote button styles */
+.promote-btn,
+.promote-btn-mobile {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.promote-btn:hover,
+.promote-btn-mobile:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(34, 197, 94, 0.3);
+}
+
+.promote-btn:active,
+.promote-btn-mobile:active {
+    transform: translateY(0);
+}
+
+.promote-icon {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.promote-btn:hover .promote-icon,
+.promote-btn-mobile:hover .promote-icon {
+    transform: scale(1.2) rotate(10deg);
+}
+
+.promote-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s;
+}
+
+.promote-btn:hover::before {
+    left: 100%;
+}
+
+/* (Promotion modal/celebration CSS removed) */
+
+/* Custom styles to complement Tailwind CSS */
+
+/* Star rating display */
+.stars {
+    display: inline-flex;
+    gap: 1px;
+}
+
+.star {
+    width: 12px;
+    height: 12px;
+    background: #ddd;
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+
+.star.filled {
+    background: #000;
+}
+
+/* Drag and drop styles */
+.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+}
+
+.drop-zone {
+    border: 2px dashed #ccc;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 10px 0;
+    text-align: center;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.drop-zone.drag-over {
+    border-color: #000;
+    background-color: #f0f0f0;
+    color: #000;
+}
+
+.drop-zone.valid {
+    border-color: #10b981;
+    background-color: #ecfdf5;
+    color: #059669;
+}
+
+.drop-zone.invalid {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+    color: #dc2626;
+}
+
+/* Player cards for mobile */
+.player-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: white;
+    transition: all 0.2s ease;
+    cursor: grab;
+}
+
+.player-card:hover {
+    border-color: #9ca3af;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.player-card.dragging {
+    cursor: grabbing;
+    transform: rotate(2deg);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Table styles */
+.players-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.players-table th {
+    background: #f9fafb;
+    padding: 12px 8px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 14px;
+}
+
+.players-table td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 14px;
+}
+
+.players-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+.players-table tbody tr.dragging {
+    background: #f3f4f6;
+    opacity: 0.7;
+}
+
+/* Squad tabs */
+.squad-tab {
+    transition: all 0.2s ease;
+}
+
+.squad-tab.active {
+    color: #000;
+    border-color: #000;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6b7280;
+}
+
+.empty-state h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #374151;
+}
+
+/* Season tabs */
+.season-tab {
+    background: #f3f4f6;
+    color: #374151;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.season-tab:hover {
+    background: #e5e7eb;
+}
+
+.season-tab.active {
+    background: #000;
+    color: #fff;
+    border-color: #000;
+}
+
+.season-tab .delete-btn {
+    opacity: 0.7;
+    padding: 2px;
+    border-radius: 2px;
+    transition: opacity 0.2s ease;
+}
+
+.season-tab .delete-btn:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Currency formatting */
+.currency::before {
+    content: attr(data-currency) " ";
+}
+
+/* Position groups */
+.position-group {
+    margin-bottom: 24px;
+}
+
+.position-group-header {
+    background: #f9fafb;
+    padding: 12px 16px;
+    border: 1px solid #e5e7eb;
+    border-bottom: none;
+    font-weight: 600;
+    color: #374151;
+    border-radius: 8px 8px 0 0;
+}
+
+/* Responsive utilities */
+@media (max-width: 640px) {
+    .players-table {
+        display: none;
+    }
+    
+    .mobile-cards {
+        display: block;
+    }
+    
+    .season-tab {
+        font-size: 14px;
+        padding: 6px 12px;
+    }
+}
+
+@media (min-width: 641px) {
+    .mobile-cards {
+        display: none;
+    }
+    
+    .players-table {
+        display: table;
+    }
+}
+
+/* Charts */
+canvas {
+    max-height: 300px;
+}
+
+/* Smooth transitions */
+* {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Focus states for accessibility */
+button:focus,
+input:focus,
+select:focus {
+    outline: 2px solid #000;
+    outline-offset: 2px;
+}
+
+/* Custom scrollbar for modal */
+.max-h-96::-webkit-scrollbar {
+    width: 6px;
+}
+
+.max-h-96::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.max-h-96::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.max-h-96::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}

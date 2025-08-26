@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMutils - FC25 Career Mode Utility</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#000000',
+                        secondary: '#ffffff',
+                        accent: '#666666'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-white text-black min-h-screen">
+    <!-- Header -->
+    <header class="bg-black text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">CMutils</h1>
+            <div class="flex space-x-4">
+                <button id="storageInfoBtn" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors">
+                    Storage Info
+                </button>
+                <button id="exportBtn" class="bg-white text-black px-4 py-2 rounded hover:bg-gray-200 transition-colors">
+                    Export JSON
+                </button>
+                <label class="bg-white text-black px-4 py-2 rounded hover:bg-gray-200 transition-colors cursor-pointer">
+                    Load JSON
+                    <input type="file" id="importBtn" accept=".json" class="hidden">
+                </label>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-4">
+        <!-- Season Management -->
+        <section class="mb-8">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                <h2 class="text-xl font-bold mb-2 sm:mb-0">Season Management</h2>
+                <button id="addSeasonBtn" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors">
+                    Add Season
+                </button>
+            </div>
+            <div class="flex flex-wrap gap-2" id="seasonTabs">
+                <!-- Season tabs will be populated here -->
+            </div>
+        </section>
+
+        <!-- Squad Selector -->
+        <section class="mb-8">
+            <div class="border-b border-gray-300">
+                <nav class="-mb-px flex space-x-8">
+                    <button id="mainSquadTab" class="squad-tab active border-b-2 border-black py-2 px-1 text-sm font-medium text-black">
+                        Main Squad
+                    </button>
+                    <button id="youthAcademyTab" class="squad-tab border-b-2 border-transparent py-2 px-1 text-sm font-medium text-gray-500 hover:text-black hover:border-gray-300">
+                        Youth Academy
+                    </button>
+                </nav>
+            </div>
+        </section>
+
+        <!-- Player Management -->
+        <section class="mb-8">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                <h3 class="text-lg font-semibold mb-2 sm:mb-0" id="squadTitle">Main Squad</h3>
+                <div class="flex space-x-2">
+                    <button id="addPlayerBtn" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors">
+                        Add Player
+                    </button>
+                    <button id="showChartsBtn" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors">
+                        Charts
+                    </button>
+                </div>
+            </div>
+
+            <!-- Players Table/Cards Container -->
+            <div id="playersContainer">
+                <!-- Players will be populated here -->
+            </div>
+        </section>
+
+        <!-- Charts Panel -->
+        <section id="chartsPanel" class="hidden mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Statistics Charts</h3>
+                <button id="hideChartsBtn" class="text-gray-600 hover:text-black">✕ Close</button>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-gray-50 p-4 rounded">
+                    <h4 class="font-medium mb-2">Average Age by Position</h4>
+                    <canvas id="ageChart" width="400" height="200"></canvas>
+                </div>
+                <div class="bg-gray-50 p-4 rounded">
+                    <h4 class="font-medium mb-2">Players Distribution by Role</h4>
+                    <canvas id="roleChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Player Modal -->
+    <div id="playerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white p-6 rounded-lg w-full max-w-2xl max-h-96 overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 id="modalTitle" class="text-lg font-semibold">Add Player</h3>
+                    <button id="closeModalBtn" class="text-gray-600 hover:text-black">✕</button>
+                </div>
+                <form id="playerForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">First Name *</label>
+                        <input type="text" id="firstName" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                        <span class="text-red-500 text-sm hidden" id="firstNameError">First name is required</span>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Last Name *</label>
+                        <input type="text" id="lastName" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                        <span class="text-red-500 text-sm hidden" id="lastNameError">Last name is required</span>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Nationality</label>
+                        <input type="text" id="nationality" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Role *</label>
+                        <select id="role" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                            <option value="">Select Role</option>
+                            <option value="GK">GK - Goalkeeper</option>
+                            <option value="LB">LB - Left Back</option>
+                            <option value="CB">CB - Center Back</option>
+                            <option value="RB">RB - Right Back</option>
+                            <option value="CDM">CDM - Defensive Midfielder</option>
+                            <option value="LM">LM - Left Midfielder</option>
+                            <option value="CM">CM - Center Midfielder</option>
+                            <option value="RM">RM - Right Midfielder</option>
+                            <option value="CAM">CAM - Attacking Midfielder</option>
+                            <option value="LW">LW - Left Winger</option>
+                            <option value="ST">ST - Striker</option>
+                            <option value="RW">RW - Right Winger</option>
+                        </select>
+                        <span class="text-red-500 text-sm hidden" id="roleError">Role is required</span>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Overall</label>
+                        <input type="number" id="overall" min="1" max="99" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Potential</label>
+                        <input type="number" id="potential" min="1" max="99" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Age</label>
+                        <input type="number" id="age" min="16" max="45" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Contract End</label>
+                        <input type="date" id="contractEnd" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Skills (1-5)</label>
+                        <input type="number" id="skills" min="1" max="5" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Weak Foot (1-5)</label>
+                        <input type="number" id="weakFoot" min="1" max="5" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Preferred Foot</label>
+                        <select id="foot" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                            <option value="">Select Foot</option>
+                            <option value="Left">Left</option>
+                            <option value="Right">Right</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Total Stats</label>
+                        <input type="number" id="totalStats" min="0" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Value</label>
+                        <input type="number" id="value" min="0" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Wage</label>
+                        <input type="number" id="wage" min="0" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Appearances</label>
+                        <input type="number" id="appearances" min="0" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Goals</label>
+                        <input type="number" id="goals" min="0" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Assists</label>
+                        <input type="number" id="assists" min="0" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Clean Sheets</label>
+                        <input type="number" id="cleanSheets" min="0" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Yellow Cards</label>
+                        <input type="number" id="yellowCards" min="0" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Red Cards</label>
+                        <input type="number" id="redCards" min="0" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Average Rating</label>
+                        <input type="number" id="avgRating" min="0" max="10" step="0.1" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                    </div>
+                </form>
+                <div class="flex justify-end space-x-2 mt-6">
+                    <button id="cancelBtn" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50">Cancel</button>
+                    <button id="savePlayerBtn" class="px-4 py-2 bg-black text-white rounded hover:bg-gray-800">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Season Modal -->
+    <div id="seasonModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white p-6 rounded-lg w-full max-w-md">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 id="seasonModalTitle" class="text-lg font-semibold">Add Season</h3>
+                    <button id="closeSeasonModalBtn" class="text-gray-600 hover:text-black">✕</button>
+                </div>
+                <form id="seasonForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Season Name *</label>
+                        <input type="text" id="seasonName" required placeholder="e.g., 2025/2026" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                        <span class="text-red-500 text-sm hidden" id="seasonNameError">Season name is required</span>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Currency *</label>
+                        <select id="seasonCurrency" required class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                            <option value="">Select Currency</option>
+                            <option value="USD">USD ($)</option>
+                            <option value="EUR">EUR (€)</option>
+                            <option value="GBP">GBP (£)</option>
+                        </select>
+                        <span class="text-red-500 text-sm hidden" id="seasonCurrencyError">Currency is required</span>
+                    </div>
+                </form>
+                <div class="flex justify-end space-x-2 mt-6">
+                    <button id="cancelSeasonBtn" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50">Cancel</button>
+                    <button id="saveSeasonBtn" class="px-4 py-2 bg-black text-white rounded hover:bg-gray-800">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Storage Info Modal -->
+    <div id="storageModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white p-6 rounded-lg w-full max-w-md">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">Storage Information</h3>
+                    <button id="closeStorageModalBtn" class="text-gray-600 hover:text-black">✕</button>
+                </div>
+                <div id="storageInfo" class="space-y-3">
+                    <!-- Storage info will be populated here -->
+                </div>
+                <div class="flex justify-between space-x-2 mt-6">
+                    <button id="clearStorageBtn" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-800">Clear Storage</button>
+                    <button id="closeStorageBtn" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
