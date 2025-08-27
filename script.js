@@ -974,8 +974,6 @@ function renderPlayersTable(groupedPlayers) {
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.forSale}')" class="text-yellow-600" title="Mark For Sale">💰</button>
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.sold}')" class="text-green-700" title="Mark Sold">🏷️</button>
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.released}')" class="text-red-600" title="Release">🚫</button>
-                                <button onclick="addPlayerCopyToBuyList('${player.id}','${TRANSFER_KEYS.toBuyClub}')" class="text-blue-600" title="Add to To-Buy (Club)">➕🏢</button>
-                                <button onclick="addPlayerCopyToBuyList('${player.id}','${TRANSFER_KEYS.toBuyReleased}')" class="text-blue-600" title="Add to To-Buy (Released)">➕📝</button>
                             </div>
                         </td>
                     </tr>
@@ -1027,8 +1025,6 @@ function renderPlayersCards(groupedPlayers) {
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.forSale}')" class="text-yellow-600 px-2" title="Mark For Sale">💰</button>
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.sold}')" class="text-green-700 px-2" title="Mark Sold">🏷️</button>
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.released}')" class="text-red-600 px-2" title="Release">🚫</button>
-                                <button onclick="addPlayerCopyToBuyList('${player.id}','${TRANSFER_KEYS.toBuyClub}')" class="text-blue-600 px-2" title="Add to To-Buy (Club)">➕🏢</button>
-                                <button onclick="addPlayerCopyToBuyList('${player.id}','${TRANSFER_KEYS.toBuyReleased}')" class="text-blue-600 px-2" title="Add to To-Buy (Released)">➕📝</button>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-2 text-sm">
