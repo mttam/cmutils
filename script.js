@@ -314,6 +314,7 @@ let currentSeasonId = null;
 let currentSquad = 'main_squad';
 let editingPlayerId = null;
 let editingSeasonId = null;
+let editingTransferKey = null; // when set, savePlayer will create a transfer-only snapshot
 let draggedElement = null;
 let charts = {};
 
@@ -665,6 +666,33 @@ function addPlayerCopyToBuyList(playerId, key) {
     renderTransfers();
 }
 
+/**
+ * Take a transfer snapshot and add it into the main_squad players if not present.
+ * This lets the user 'show' a transfer snapshot in their main player list.
+ */
+function showTransferInPlayers(listKey, snapshotId) {
+    const season = getCurrentSeason();
+    if (!season) return;
+    const transfers = getSeasonTransfers(season);
+    const list = transfers[listKey] || [];
+    const snapshot = list.find(p => p.id && p.id.toString() === snapshotId.toString());
+    if (!snapshot) return alert('Snapshot not found');
+
+    // If a player with the same id already exists in any squad, warn and do nothing
+    const allPlayers = Object.assign({}, season.roster.main_squad.players, season.roster.youth_academy.players);
+    if (allPlayers[snapshot.id]) {
+        return alert('This player snapshot already exists in your squads.');
+    }
+
+    // Insert into main_squad with same snapshot id to preserve link
+    season.roster.main_squad.players[snapshot.id] = Object.assign({}, snapshot);
+    // Normalize ordering so the new player appears correctly grouped
+    normalizePlayerOrder(season, 'main_squad');
+    saveToStorage();
+    renderPlayers();
+    alert(`Added ${snapshot.firstName} ${snapshot.lastName} to Main Squad`);
+}
+
 function removeFromTransferList(listKey, playerSnapshotId) {
     const season = getCurrentSeason();
     if (!season) return;
@@ -701,8 +729,15 @@ function renderTransfers() {
 
     function renderList(title, listKey) {
         const list = transfers[listKey] || [];
+        // Add an "Add Player" button for the 'toBuy' lists which opens the player modal
+        const isToBuy = listKey === TRANSFER_KEYS.toBuyClub || listKey === TRANSFER_KEYS.toBuyReleased;
+        let addBtnHtml = '';
+        if (isToBuy) {
+            addBtnHtml = `<button onclick="openTransferPlayerModal('${listKey}')" class="text-xs text-blue-600">Add Player</button>`;
+        }
+
         let html = `<div class="position-group mb-4">
-            <div class="position-group-header flex justify-between items-center">${title} <div class="space-x-2"><button onclick="clearTransferList('${listKey}')" class="text-xs text-red-600">Clear</button></div></div>`;
+            <div class="position-group-header flex justify-between items-center">${title} <div class="space-x-2">${addBtnHtml}<button onclick="clearTransferList('${listKey}')" class="text-xs text-red-600">Clear</button></div></div>`;
         if (list.length === 0) {
             html += `<div class="p-4 text-sm text-gray-600">No players</div>`;
         } else {
@@ -719,6 +754,7 @@ function renderTransfers() {
                                 <div class="text-sm text-gray-500">${p.nationality || 'Unknown'} • ${p.role || '-'}</div>
                             </div>
                             <div class="flex items-center gap-2">
+                                <button onclick="showTransferInPlayers('${listKey}','${p.id}')" class="text-blue-600" title="Add the player to the main squad">➕</button>
                                 <button onclick="removeFromTransferList('${listKey}','${p.id}')" class="text-red-600" title="Remove">🗑️</button>
                             </div>
                         </div>
@@ -1389,6 +1425,23 @@ function openPlayerModal(playerId = null) {
 }
 
 /**
+ * Open player modal in 'transfer-only' mode. When saved, the player will be
+ * added as a snapshot to the specified transfer list (without adding to any squad).
+ */
+function openTransferPlayerModal(listKey) {
+    // Clear any editing player id and set transfer key
+    editingPlayerId = null;
+    editingTransferKey = listKey;
+    const modal = document.getElementById('playerModal');
+    const title = document.getElementById('modalTitle');
+    const form = document.getElementById('playerForm');
+
+    title.textContent = 'Add Player (To Buy)';
+    form.reset();
+    modal.classList.remove('hidden');
+}
+
+/**
  * Populate player form with data
  */
 function populatePlayerForm(player) {
@@ -1422,6 +1475,7 @@ function closePlayerModal() {
     document.getElementById('playerModal').classList.add('hidden');
     document.getElementById('playerForm').reset();
     editingPlayerId = null;
+    editingTransferKey = null;
     clearPlayerErrors();
 }
 
@@ -1440,11 +1494,25 @@ function savePlayer() {
     
     const season = getCurrentSeason();
     if (!season) return;
-    
+    // If editingTransferKey is set, create a snapshot and add to that transfer list
+    if (editingTransferKey) {
+        const transfers = getSeasonTransfers(season);
+        const snapshot = Object.assign({ id: generateId() }, formData);
+        // prevent duplicate snapshot ids (should be unique since generated)
+        if (!transfers[editingTransferKey].some(item => item.id && item.id.toString() === snapshot.id.toString())) {
+            transfers[editingTransferKey].push(snapshot);
+        }
+        saveToStorage();
+        renderTransfers();
+        editingTransferKey = null;
+        closePlayerModal();
+        return;
+    }
+
     if (editingPlayerId) {
         // Edit existing player
         const player = season.roster[currentSquad].players[editingPlayerId];
-    Object.assign(player, formData);
+        Object.assign(player, formData);
     } else {
         // Add new player
         const newPlayer = {
@@ -2031,4 +2099,6 @@ window.addPlayerToTransferList = addPlayerToTransferList;
 window.addPlayerCopyToBuyList = addPlayerCopyToBuyList;
 window.removeFromTransferList = removeFromTransferList;
 window.clearTransferList = clearTransferList;
+window.openTransferPlayerModal = openTransferPlayerModal;
+window.showTransferInPlayers = showTransferInPlayers;
 // promotion modal removed; no global close function
