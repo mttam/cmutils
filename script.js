@@ -672,6 +672,8 @@ function removeFromTransferList(listKey, playerSnapshotId) {
     transfers[listKey] = (transfers[listKey] || []).filter(p => !(p.id && p.id.toString() === playerSnapshotId.toString()));
     saveToStorage();
     renderTransfers();
+    // Re-render players so any 'for-sale' highlighting is updated/removed immediately
+    renderPlayers();
 }
 
 function clearTransferList(listKey) {
@@ -681,6 +683,8 @@ function clearTransferList(listKey) {
     transfers[listKey] = [];
     saveToStorage();
     renderTransfers();
+    // Re-render players to reflect cleared For Sale list
+    renderPlayers();
 }
 
 /**
@@ -898,8 +902,9 @@ function renderPlayersTable(groupedPlayers) {
             `;
             
             players.forEach(player => {
+                const isForSale = season && season.transfers && Array.isArray(season.transfers.forSale) && season.transfers.forSale.some(item => item.id && item.id.toString() === player.id.toString());
                 html += `
-                    <tr draggable="true" data-player-id="${player.id}" data-position-group="${groupName}" class="player-row ${groupClass}">
+                    <tr draggable="true" data-player-id="${player.id}" data-position-group="${groupName}" class="player-row ${groupClass} ${isForSale ? 'for-sale' : ''}">
                         <td>
                             <div class="font-medium">${player.firstName} ${player.lastName}</div>
                             <div class="text-sm text-gray-500">${player.nationality || 'Unknown'}</div>
@@ -963,8 +968,9 @@ function renderPlayersCards(groupedPlayers) {
             html += `<div class="position-group-header">${groupName}</div>`;
             
             players.forEach(player => {
+                const isForSale = season && season.transfers && Array.isArray(season.transfers.forSale) && season.transfers.forSale.some(item => item.id && item.id.toString() === player.id.toString());
                 html += `
-                    <div class="player-card ${groupClass}" draggable="true" data-player-id="${player.id}" data-position-group="${groupName}">
+                    <div class="player-card ${groupClass} ${isForSale ? 'for-sale' : ''}" draggable="true" data-player-id="${player.id}" data-position-group="${groupName}">
                         <div class="flex justify-between items-start mb-2">
                             <div>
                                 <div class="font-semibold">${player.firstName} ${player.lastName}</div>

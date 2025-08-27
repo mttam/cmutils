@@ -282,6 +282,17 @@
     background-color: rgba(254, 226, 226, 0.7); /* light red */
 }
 
+/* For Sale state: muted light gray for rows/cards */
+.for-sale {
+    background-color: #f3f4f6 !important; /* light gray */
+    color: #9ca3af !important; /* muted text */
+}
+
+.players-table .for-sale td {
+    background-color: #f3f4f6 !important;
+    color: #9ca3af !important;
+}
+
 /* Accent left border for headers in desktop table */
 .players-table .position-group-row.group-goalkeepers .position-group-header {
     border-left: 6px solid #FBBF24;
