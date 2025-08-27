@@ -56,6 +56,8 @@
             </div>
         </section>
 
+    <!-- Transfers: toggled panel (hidden by default, similar to Charts panel) -->
+
         <!-- Squad Selector -->
         <section class="mb-8">
             <div class="border-b border-gray-300">
@@ -81,6 +83,9 @@
                     <button id="showChartsBtn" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors">
                         Charts
                     </button>
+                        <button id="showTransfersBtn" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors">
+                            Transfers
+                        </button>
                 </div>
             </div>
 
@@ -132,6 +137,17 @@
                     </div>
                     <canvas id="positionStatChart" width="400" height="200"></canvas>
                 </div>
+            </div>
+        </section>
+
+        <!-- Transfers Panel -->
+        <section id="transfersPanel" class="hidden mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Transfers</h3>
+                <button id="hideTransfersBtn" class="text-gray-600 hover:text-black">✕ Close</button>
+            </div>
+            <div class="bg-gray-50 p-4 rounded">
+                <div id="transfersContainer"></div>
             </div>
         </section>
     </main>

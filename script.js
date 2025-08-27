@@ -346,6 +346,14 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     initializeApp();
 });
+    // Transfer list keys used in season.roster.transfers
+    const TRANSFER_KEYS = {
+        forSale: 'forSale',
+        sold: 'sold',
+        released: 'released',
+        toBuyClub: 'toBuyClub',
+        toBuyReleased: 'toBuyReleased'
+    };
 
 /**
  * Setup all event listeners
@@ -370,6 +378,11 @@ function setupEventListeners() {
     // Charts
     document.getElementById('showChartsBtn').addEventListener('click', showCharts);
     document.getElementById('hideChartsBtn').addEventListener('click', hideCharts);
+    // Transfers
+    const showTransfersBtn = document.getElementById('showTransfersBtn');
+    if (showTransfersBtn) showTransfersBtn.addEventListener('click', showTransfers);
+    const hideTransfersBtn = document.getElementById('hideTransfersBtn');
+    if (hideTransfersBtn) hideTransfersBtn.addEventListener('click', hideTransfers);
     // Stat selector for position-based averages (if present)
     const statSelect = document.getElementById('statSelect');
     if (statSelect) {
@@ -435,6 +448,7 @@ async function initializeApp() {
 
     renderSeasonTabs();
     renderPlayers();
+    renderTransfers();
 }
 
 /**
@@ -549,6 +563,17 @@ function validateAndCleanSeasons(seasons) {
         if (!season.roster.youth_academy) season.roster.youth_academy = { players: {} };
         if (!season.roster.main_squad.players) season.roster.main_squad.players = {};
         if (!season.roster.youth_academy.players) season.roster.youth_academy.players = {};
+
+        // Ensure transfers structure exists at season level
+        if (!season.transfers) {
+            season.transfers = {
+                forSale: [],
+                sold: [],
+                released: [],
+                toBuyClub: [],
+                toBuyReleased: []
+            };
+        }
         
         // Validate and clean players
         ['main_squad', 'youth_academy'].forEach(squadType => {
@@ -586,6 +611,140 @@ function validateAndCleanSeasons(seasons) {
         
         return season;
     });
+}
+
+/**
+ * Transfer helper functions
+ */
+function getSeasonTransfers(season) {
+    if (!season) return null;
+    if (!season.transfers) season.transfers = { forSale: [], sold: [], released: [], toBuyClub: [], toBuyReleased: [] };
+    return season.transfers;
+}
+
+function addPlayerToTransferList(playerId, key) {
+    const season = getCurrentSeason();
+    if (!season) return;
+    const players = Object.assign({}, season.roster.main_squad.players, season.roster.youth_academy.players);
+    const player = players[playerId];
+    if (!player) return alert('Player not found');
+
+    const transfers = getSeasonTransfers(season);
+
+    // snapshot of player
+    const snapshot = Object.assign({}, player);
+
+    if (key === TRANSFER_KEYS.sold || key === TRANSFER_KEYS.released) {
+        // remove from all squads
+        delete season.roster.main_squad.players[playerId];
+        delete season.roster.youth_academy.players[playerId];
+    }
+
+    // prevent duplicate snapshot ids
+    if (!transfers[key].some(item => item.id && item.id.toString() === snapshot.id.toString())) {
+        transfers[key].push(snapshot);
+    }
+    saveToStorage();
+    renderPlayers();
+    renderTransfers();
+}
+
+function addPlayerCopyToBuyList(playerId, key) {
+    const season = getCurrentSeason();
+    if (!season) return;
+    const players = Object.assign({}, season.roster.main_squad.players, season.roster.youth_academy.players);
+    const player = players[playerId];
+    if (!player) return alert('Player not found');
+
+    const transfers = getSeasonTransfers(season);
+    const snapshot = Object.assign({}, player, { id: generateId() });
+    if (!transfers[key].some(item => item.id && item.id.toString() === snapshot.id.toString())) {
+        transfers[key].push(snapshot);
+    }
+    saveToStorage();
+    renderTransfers();
+}
+
+function removeFromTransferList(listKey, playerSnapshotId) {
+    const season = getCurrentSeason();
+    if (!season) return;
+    const transfers = getSeasonTransfers(season);
+    transfers[listKey] = (transfers[listKey] || []).filter(p => !(p.id && p.id.toString() === playerSnapshotId.toString()));
+    saveToStorage();
+    renderTransfers();
+}
+
+function clearTransferList(listKey) {
+    const season = getCurrentSeason();
+    if (!season) return;
+    const transfers = getSeasonTransfers(season);
+    transfers[listKey] = [];
+    saveToStorage();
+    renderTransfers();
+}
+
+/**
+ * Render transfers UI into #transfersContainer
+ */
+function renderTransfers() {
+    const container = document.getElementById('transfersContainer');
+    if (!container) return;
+    const season = getCurrentSeason();
+    if (!season) { container.innerHTML = ''; return; }
+    const transfers = getSeasonTransfers(season);
+
+    const currency = CURRENCY_SYMBOLS[season.currency] || '$';
+
+    function renderList(title, listKey) {
+        const list = transfers[listKey] || [];
+        let html = `<div class="position-group mb-4">
+            <div class="position-group-header flex justify-between items-center">${title} <div class="space-x-2"><button onclick="clearTransferList('${listKey}')" class="text-xs text-red-600">Clear</button></div></div>`;
+        if (list.length === 0) {
+            html += `<div class="p-4 text-sm text-gray-600">No players</div>`;
+        } else {
+            list.forEach(p => {
+                // compute group class so styling matches main player cards
+                const grp = getPositionGroup(p.role) || 'Unknown';
+                const groupClass = 'group-' + grp.toLowerCase().replace(/\s+/g, '-');
+
+                html += `
+                    <div class="player-card ${groupClass}" style="margin:8px;" data-transfer-id="${p.id}">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <div class="font-semibold">${p.firstName} ${p.lastName}</div>
+                                <div class="text-sm text-gray-500">${p.nationality || 'Unknown'} • ${p.role || '-'}</div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="removeFromTransferList('${listKey}','${p.id}')" class="text-red-600" title="Remove">🗑️</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div>OVR: <span class="font-medium">${p.overall || '-'}</span></div>
+                            <div>POT: <span class="font-medium">${p.potential || '-'}</span></div>
+                            <div>Age: <span class="font-medium">${p.age || '-'}</span></div>
+                            <div>Contract: <span class="font-medium">${p.contractEnd || '-'}</span></div>
+                            <div>Skills: ${renderStars(p.skills)}</div>
+                            <div>Weak Foot: ${renderStars(p.weakFoot)}</div>
+                            <div>Value: <span class="font-medium">${currency}${formatNumber(p.value)}</span></div>
+                            <div>Wage: <span class="font-medium">${currency}${formatNumber(p.wage)}</span></div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        html += '</div>';
+        return html;
+    }
+
+    let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
+    html += renderList('Players For Sale', 'forSale');
+    html += renderList('Players Sold', 'sold');
+    html += renderList('Players Released', 'released');
+    html += renderList('Players To Buy (Club)', 'toBuyClub');
+    html += renderList('Players To Buy (Released)', 'toBuyReleased');
+    html += '</div>';
+
+    container.innerHTML = html;
 }
 
 /**
@@ -664,7 +823,9 @@ function renderPlayers() {
                 </button>
             </div>
         `;
-        return;
+    // still render transfers section even if no players
+    renderTransfers();
+    return;
     }
 
     // Group players by position
@@ -769,6 +930,11 @@ function renderPlayersTable(groupedPlayers) {
                                 }
                                 <button onclick="movePlayerUp('${player.id}')" class="text-gray-600 hover:text-gray-800" title="Move Up">↑</button>
                                 <button onclick="movePlayerDown('${player.id}')" class="text-gray-600 hover:text-gray-800" title="Move Down">↓</button>
+                                <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.forSale}')" class="text-yellow-600" title="Mark For Sale">💰</button>
+                                <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.sold}')" class="text-green-700" title="Mark Sold">🏷️</button>
+                                <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.released}')" class="text-red-600" title="Release">🚫</button>
+                                <button onclick="addPlayerCopyToBuyList('${player.id}','${TRANSFER_KEYS.toBuyClub}')" class="text-blue-600" title="Add to To-Buy (Club)">➕🏢</button>
+                                <button onclick="addPlayerCopyToBuyList('${player.id}','${TRANSFER_KEYS.toBuyReleased}')" class="text-blue-600" title="Add to To-Buy (Released)">➕📝</button>
                             </div>
                         </td>
                     </tr>
@@ -816,6 +982,11 @@ function renderPlayersCards(groupedPlayers) {
                                 <!-- Add move up/down buttons for mobile view -->
                                 <button onclick="movePlayerUp('${player.id}')" class="text-gray-600 hover:text-gray-800 px-2 py-1 rounded" title="Move Up">↑</button>
                                 <button onclick="movePlayerDown('${player.id}')" class="text-gray-600 hover:text-gray-800 px-2 py-1 rounded" title="Move Down">↓</button>
+                                <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.forSale}')" class="text-yellow-600 px-2" title="Mark For Sale">💰</button>
+                                <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.sold}')" class="text-green-700 px-2" title="Mark Sold">🏷️</button>
+                                <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.released}')" class="text-red-600 px-2" title="Release">🚫</button>
+                                <button onclick="addPlayerCopyToBuyList('${player.id}','${TRANSFER_KEYS.toBuyClub}')" class="text-blue-600 px-2" title="Add to To-Buy (Club)">➕🏢</button>
+                                <button onclick="addPlayerCopyToBuyList('${player.id}','${TRANSFER_KEYS.toBuyReleased}')" class="text-blue-600 px-2" title="Add to To-Buy (Released)">➕📝</button>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-2 text-sm">
@@ -1132,6 +1303,7 @@ function saveSeason() {
                 youth_academy: { players: {} }
             }
         };
+    newSeason.transfers = { forSale: [], sold: [], released: [], toBuyClub: [], toBuyReleased: [] };
         currentSeasons.push(newSeason);
         currentSeasonId = newSeason.id;
     }
@@ -1436,6 +1608,21 @@ function showCharts() {
 function hideCharts() {
     document.getElementById('chartsPanel').classList.add('hidden');
     destroyCharts();
+}
+
+/**
+ * Show transfers panel
+ */
+function showTransfers() {
+    document.getElementById('transfersPanel').classList.remove('hidden');
+    renderTransfers();
+}
+
+/**
+ * Hide transfers panel
+ */
+function hideTransfers() {
+    document.getElementById('transfersPanel').classList.add('hidden');
 }
 
 /**
@@ -1834,4 +2021,8 @@ window.movePlayerDown = movePlayerDown;
 window.deleteSeason = deleteSeason;
 window.openPlayerModal = openPlayerModal;
 window.showStorageInfo = showStorageInfo;
+window.addPlayerToTransferList = addPlayerToTransferList;
+window.addPlayerCopyToBuyList = addPlayerCopyToBuyList;
+window.removeFromTransferList = removeFromTransferList;
+window.clearTransferList = clearTransferList;
 // promotion modal removed; no global close function
