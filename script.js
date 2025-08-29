@@ -372,6 +372,8 @@ function setupEventListeners() {
 
     // Player management
     document.getElementById('addPlayerBtn').addEventListener('click', () => openPlayerModal());
+    const nextSeasonBtn = document.getElementById('nextSeasonBtn');
+    if (nextSeasonBtn) nextSeasonBtn.addEventListener('click', () => nextSeason());
     document.getElementById('savePlayerBtn').addEventListener('click', savePlayer);
     document.getElementById('cancelBtn').addEventListener('click', closePlayerModal);
     document.getElementById('closeModalBtn').addEventListener('click', closePlayerModal);
@@ -1406,6 +1408,75 @@ function deleteSeason(seasonId) {
             renderCharts();
         }
     }
+}
+
+/**
+ * Create a new season by copying the current one, advancing players by one year.
+ * - increments numeric ages by 1
+ * - advances contractEnd date by one year when parseable
+ * - creates a progressive season name based on current season.name, using suffix (2), (3), ...
+ */
+function nextSeason() {
+    const season = getCurrentSeason();
+    if (!season) return alert('No active season to copy');
+
+    // Deep clone the season
+    const cloned = JSON.parse(JSON.stringify(season));
+    // Assign new id and reset transfers
+    cloned.id = generateId();
+    cloned.transfers = { forSale: [], sold: [], released: [], toBuyClub: [], toBuyReleased: [] };
+
+    // Update players in both squads
+    ['main_squad', 'youth_academy'].forEach(sq => {
+        if (!cloned.roster) cloned.roster = { main_squad: { players: {} }, youth_academy: { players: {} } };
+        if (!cloned.roster[sq]) cloned.roster[sq] = { players: {} };
+        const players = cloned.roster[sq].players || {};
+        Object.keys(players).forEach(pid => {
+            const p = players[pid];
+            // increment age if numeric
+            if (p.age !== undefined && p.age !== null) {
+                const n = Number(p.age);
+                if (!isNaN(n)) p.age = n + 1;
+            }
+        });
+    });
+
+    // Determine progressive name: strip any trailing (N) from the current season name
+    // then find the highest existing numeric suffix and add 1.
+    const baseName = (season.name || '').replace(/\s*\(\d+\)\s*$/, '').trim();
+    let maxSuffix = 1; // treat the base name as '1'
+    // escape baseName for regex
+    const escBase = baseName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp('^' + escBase + '\\s*\\((\\d+)\\)\\s*$');
+    currentSeasons.forEach(s => {
+        if (!s.name) return;
+        const name = s.name.trim();
+        if (name === baseName) {
+            maxSuffix = Math.max(maxSuffix, 1);
+            return;
+        }
+        const m = name.match(re);
+        if (m && m[1]) {
+            const n = parseInt(m[1], 10);
+            if (!isNaN(n)) maxSuffix = Math.max(maxSuffix, n);
+        }
+    });
+    const suffix = maxSuffix + 1;
+    cloned.name = `${baseName} (${suffix})`;
+
+    // push and switch
+    currentSeasons.push(cloned);
+    currentSeasonId = cloned.id;
+    // normalize order for squads
+    normalizePlayerOrder(cloned, 'main_squad');
+    normalizePlayerOrder(cloned, 'youth_academy');
+    saveToStorage();
+    renderSeasonTabs();
+    renderPlayers();
+    if (document.getElementById('chartsPanel') && !document.getElementById('chartsPanel').classList.contains('hidden')) {
+        renderCharts();
+    }
+    alert(`Created new season: ${cloned.name}`);
 }
 
 /**
