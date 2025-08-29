@@ -829,11 +829,21 @@ function renderSeasonTabs() {
             <span>${season.name}</span>
             <button class="delete-btn" onclick="deleteSeason('${season.id}')" title="Delete Season">×</button>
         `;
+
+        // Single click: switch season (only on single clicks, not the first click of a double-click)
         tab.addEventListener('click', (e) => {
+            if (e.detail === 2) return; // ignore the first click of a double-click
             if (!e.target.classList.contains('delete-btn')) {
                 switchSeason(season.id);
             }
         });
+
+        // Double click: open season modal to edit the season (rename, change currency)
+        tab.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            openSeasonModal(season.id);
+        });
+
         container.appendChild(tab);
     });
 }
@@ -1320,6 +1330,14 @@ function openSeasonModal(seasonId = null) {
     }
     
     modal.classList.remove('hidden');
+    // Focus the season name input for quicker renaming when editing
+    setTimeout(() => {
+        const nameInput = document.getElementById('seasonName');
+        if (nameInput) {
+            nameInput.focus();
+            nameInput.select && nameInput.select();
+        }
+    }, 50);
 }
 
 /**
