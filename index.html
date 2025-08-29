@@ -24,16 +24,16 @@
 <body class="bg-white text-black min-h-screen">
     <!-- Header -->
     <header class="bg-black text-white p-4">
-        <div class="container mx-auto flex justify-between items-center">
+        <div class="container mx-auto flex flex-col sm:flex-row sm:justify-between items-stretch sm:items-center gap-3 sm:gap-0">
             <h1 class="text-2xl font-bold">CMutils</h1>
-            <div class="flex space-x-4">
-                <button id="storageInfoBtn" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors">
+            <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0 w-full sm:w-auto">
+                <button id="storageInfoBtn" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors w-full sm:w-auto text-center">
                     Storage Info
                 </button>
-                <button id="exportBtn" class="bg-white text-black px-4 py-2 rounded hover:bg-gray-200 transition-colors">
+                <button id="exportBtn" class="bg-white text-black px-4 py-2 rounded hover:bg-gray-200 transition-colors w-full sm:w-auto text-center">
                     Export JSON
                 </button>
-                <label class="bg-white text-black px-4 py-2 rounded hover:bg-gray-200 transition-colors cursor-pointer">
+                <label class="bg-white text-black px-4 py-2 rounded hover:bg-gray-200 transition-colors cursor-pointer w-full sm:w-auto text-center">
                     Load JSON
                     <input type="file" id="importBtn" accept=".json" class="hidden">
                 </label>
