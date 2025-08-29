@@ -369,3 +369,19 @@ select:focus {
 .max-h-96::-webkit-scrollbar-thumb:hover {
     background: #a1a1a1;
 }
+
+/* Season Stats panel */
+.season-stats-panel .season-stats-grid {
+    display: grid;
+    gap: 10px;
+}
+
+.season-stats-panel {
+    border: 1px solid #e5e7eb;
+    background: #fff;
+}
+
+/* Edit modal textarea styling */
+#seasonStatsEditModal textarea {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
+}

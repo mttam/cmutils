@@ -86,6 +86,9 @@
                         <button id="showTransfersBtn" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors">
                             Transfers
                         </button>
+                        <button id="showSeasonStatsBtn" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors">
+                            Season Stats
+                        </button>
                 </div>
             </div>
 
@@ -150,6 +153,195 @@
                 <div id="transfersContainer"></div>
             </div>
         </section>
+
+        <!-- Season Stats Panel -->
+        <section id="seasonStatsPanel" class="hidden mb-8 season-stats-panel">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Season Stats</h3>
+                <div class="flex items-center gap-3">
+                    <button id="editSeasonStatsBtn" class="text-sm text-blue-600 hover:text-blue-800">Edit</button>
+                    <button id="hideSeasonStatsBtn" class="text-gray-600 hover:text-black">✕ Close</button>
+                </div>
+            </div>
+            <div class="bg-gray-50 p-4 rounded">
+                <div id="seasonRecord" class="mb-4"></div>
+
+                <div id="seasonTrophies" class="mb-4">
+                    <h4 class="font-medium mb-2">Trophies</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <div class="font-semibold">League</div>
+                            <ul id="seasonTrophiesLeague" class="text-sm text-gray-700 mt-1"></ul>
+                        </div>
+                        <div>
+                            <div class="font-semibold">Domestic Tournaments</div>
+                            <ul id="seasonTrophiesDomestic" class="text-sm text-gray-700 mt-1"></ul>
+                        </div>
+                        <div>
+                            <div class="font-semibold">International Tournaments</div>
+                            <ul id="seasonTrophiesInternational" class="text-sm text-gray-700 mt-1"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="playerAwards">
+                    <h4 class="font-medium mb-2">Player Awards</h4>
+                    <div id="playerAwardsList" class="text-sm text-gray-700"></div>
+                </div>
+            </div>
+        </section>
+
+    <!-- Season Stats Edit Modal (structured, like player modal) -->
+    <div id="seasonStatsEditModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white p-6 rounded-lg w-full max-w-3xl max-h-[80vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 id="seasonStatsEditTitle" class="text-lg font-semibold">Edit Season</h3>
+                    <button id="cancelSeasonStatsEditBtn" class="text-gray-600 hover:text-black">✕</button>
+                </div>
+
+                <form id="seasonStatsEditForm" class="space-y-4">
+                    <div>
+                        <h4 class="font-medium mb-2">Season Record</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+                            <div>
+                                <label class="text-sm">Wins</label>
+                                <input id="recordWins" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                            <div>
+                                <label class="text-sm">Draws</label>
+                                <input id="recordDraws" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                            <div>
+                                <label class="text-sm">Losses</label>
+                                <input id="recordLosses" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                            <div>
+                                <label class="text-sm">Goals For</label>
+                                <input id="recordGF" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                            <div>
+                                <label class="text-sm">Goals Against</label>
+                                <input id="recordGA" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                        </div>
+                        <!-- Aggregated totals and home/away breakdown -->
+                        <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+                            <div>
+                                <label class="text-sm">Total Games</label>
+                                <input id="totalsGames" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                            <div>
+                                <label class="text-sm">Games at Home</label>
+                                <input id="totalsGamesHome" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                            <div>
+                                <label class="text-sm">Games Away</label>
+                                <input id="totalsGamesAway" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                        </div>
+
+                        <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+                            <div>
+                                <label class="text-sm">Wins (Home)</label>
+                                <input id="winsHome" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                            <div>
+                                <label class="text-sm">Draws (Home)</label>
+                                <input id="drawsHome" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                            <div>
+                                <label class="text-sm">Losses (Home)</label>
+                                <input id="lossesHome" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                        </div>
+
+                        <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+                            <div>
+                                <label class="text-sm">Wins (Away)</label>
+                                <input id="winsAway" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                            <div>
+                                <label class="text-sm">Draws (Away)</label>
+                                <input id="drawsAway" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                            <div>
+                                <label class="text-sm">Losses (Away)</label>
+                                <input id="lossesAway" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                        </div>
+
+                        <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+                            <div>
+                                <label class="text-sm">Goals For (Home)</label>
+                                <input id="goalsForHome" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                            <div>
+                                <label class="text-sm">Goals Against (Home)</label>
+                                <input id="goalsAgainstHome" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                            <div>
+                                <label class="text-sm">Goals For (Away)</label>
+                                <input id="goalsForAway" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                        </div>
+
+                        <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+                            <div>
+                                <label class="text-sm">Goals Against (Away)</label>
+                                <input id="goalsAgainstAway" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                            <div>
+                                <label class="text-sm">Clean Sheets (Total)</label>
+                                <input id="cleanSheetsTotal" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                            <div>
+                                <label class="text-sm">Clean Sheets (Home)</label>
+                                <input id="cleanSheetsHome" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                        </div>
+
+                        <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+                            <div>
+                                <label class="text-sm">Clean Sheets (Away)</label>
+                                <input id="cleanSheetsAway" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                            <div>
+                                <label class="text-sm">Spare/Draw (Total)</label>
+                                <input id="recordSpares" type="number" min="0" class="w-full border border-gray-300 rounded px-2 py-1">
+                            </div>
+                            <div></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-medium mb-2">Trophies</h4>
+                        <div id="trophiesContainer" class="space-y-2">
+                            <!-- trophy rows inserted here -->
+                        </div>
+                        <div class="mt-2">
+                            <button type="button" id="addTrophyBtn" class="text-sm text-blue-600">+ Add Trophy</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-medium mb-2">Player Awards</h4>
+                        <div id="awardsContainer" class="space-y-2">
+                            <!-- award rows inserted here -->
+                        </div>
+                        <div class="mt-2">
+                            <button type="button" id="addAwardBtn" class="text-sm text-blue-600">+ Add Award</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="flex justify-end space-x-2 mt-6">
+                    <button id="saveSeasonStatsEditsBtn" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50">Cancel</button>
+                    <button id="saveSeasonStatsSaveBtn" class="px-4 py-2 bg-black text-white rounded hover:bg-gray-800">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
     </main>
 
     <!-- Player Modal -->

@@ -163,7 +163,19 @@
             }
           }
         }
-      }
+      },
+      "matches": [
+        { "totals_games": 44,"totals_games_at_home": 22,"totals_games_away": 22,"wins": 30, "spares": 2, "loss": 10, "wins_at_home": 15, "spares_at_home": 0, "loss_at_home": 5, "wins_away": 15, "spares_away": 2, "loss_away": 5, "goals_for": 85, "goals_against": 40, "goals_for_home": 45, "goals_against_home": 20, "goals_for_away": 40, "goals_against_away": 20, "clean_sheets": 18, "clean_sheets_home": 10, "clean_sheets_away": 8 }
+      ],
+      "trophies": [
+        { "name": "Premier League", "scope": "league", "competition": "Premier" },
+        { "name": "National Cup", "scope": "domestic", "competition": "Cup" }
+      ],
+      "playerAwards": [
+        { "playerId": null, "awardName": "Golden Boot", "note": "Top scorer" },
+        { "playerId": null, "awardName": "Player of the Season" }
+      ],
+      "transfers": { "forSale": [], "sold": [], "released": [], "toBuyClub": [], "toBuyReleased": [] }
     },
     {
       "id": null,
@@ -253,6 +265,7 @@
             }
           }
         }
+        
       }
     }
   ]

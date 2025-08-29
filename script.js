@@ -384,6 +384,31 @@ function setupEventListeners() {
     if (showTransfersBtn) showTransfersBtn.addEventListener('click', showTransfers);
     const hideTransfersBtn = document.getElementById('hideTransfersBtn');
     if (hideTransfersBtn) hideTransfersBtn.addEventListener('click', hideTransfers);
+    // Season Stats panel wiring
+    const showSeasonStatsBtn = document.getElementById('showSeasonStatsBtn');
+    if (showSeasonStatsBtn) showSeasonStatsBtn.addEventListener('click', showSeasonStats);
+    const hideSeasonStatsBtn = document.getElementById('hideSeasonStatsBtn');
+    if (hideSeasonStatsBtn) hideSeasonStatsBtn.addEventListener('click', hideSeasonStats);
+    const editSeasonStatsBtn = document.getElementById('editSeasonStatsBtn');
+    if (editSeasonStatsBtn) editSeasonStatsBtn.addEventListener('click', openSeasonStatsEditModal);
+    const cancelSeasonStatsEditBtn = document.getElementById('cancelSeasonStatsEditBtn');
+    if (cancelSeasonStatsEditBtn) cancelSeasonStatsEditBtn.addEventListener('click', closeSeasonStatsEditModal);
+    const addTrophyBtn = document.getElementById('addTrophyBtn');
+    if (addTrophyBtn) addTrophyBtn.addEventListener('click', () => {
+        const c = document.getElementById('trophiesContainer'); if (c) addTrophyRow(c);
+    });
+    const addAwardBtn = document.getElementById('addAwardBtn');
+    if (addAwardBtn) addAwardBtn.addEventListener('click', () => {
+        const c = document.getElementById('awardsContainer'); if (c) addAwardRow(c);
+    });
+    const saveSeasonStatsSaveBtn = document.getElementById('saveSeasonStatsSaveBtn');
+    if (saveSeasonStatsSaveBtn) saveSeasonStatsSaveBtn.addEventListener('click', saveSeasonStatsEdits);
+    const saveSeasonStatsEditsBtn = document.getElementById('saveSeasonStatsEditsBtn');
+    if (saveSeasonStatsEditsBtn) saveSeasonStatsEditsBtn.addEventListener('click', closeSeasonStatsEditModal);
+    const exportSeasonStatsCSVBtn = document.getElementById('exportSeasonStatsCSV');
+    if (exportSeasonStatsCSVBtn) exportSeasonStatsCSVBtn.addEventListener('click', exportSeasonStatsCSV);
+    const exportSeasonStatsJSONBtn = document.getElementById('exportSeasonStatsJSON');
+    if (exportSeasonStatsJSONBtn) exportSeasonStatsJSONBtn.addEventListener('click', exportSeasonStatsJSON);
     // Stat selector for position-based averages (if present)
     const statSelect = document.getElementById('statSelect');
     if (statSelect) {
@@ -490,7 +515,8 @@ function saveToStorage() {
             console.warn(`Warning: Data size is ${Math.round(dataSize / 1024 / 1024 * 100) / 100}MB, approaching localStorage limits`);
         }
         
-        localStorage.setItem('cmutils_data', dataString);
+    localStorage.setItem('cmutils_data', dataString);
+    try { renderSeasonStatsPanel(getCurrentSeason()); } catch (e) { /* no-op */ }
     } catch (error) {
         if (error.name === 'QuotaExceededError') {
             handleStorageQuotaExceeded();
@@ -865,6 +891,7 @@ function renderPlayers() {
         `;
     // still render transfers section even if no players
     renderTransfers();
+    try { renderSeasonStatsPanel(getCurrentSeason()); } catch (e) { /* no-op */ }
     return;
     }
 
@@ -1696,6 +1723,216 @@ function hideTransfers() {
 }
 
 /**
+ * Show season stats panel
+ */
+function showSeasonStats() {
+    const el = document.getElementById('seasonStatsPanel');
+    if (!el) return;
+    el.classList.remove('hidden');
+    try { renderSeasonStatsPanel(getCurrentSeason()); } catch (e) { console.warn(e); }
+}
+
+/**
+ * Hide season stats panel
+ */
+function hideSeasonStats() {
+    const el = document.getElementById('seasonStatsPanel');
+    if (!el) return;
+    el.classList.add('hidden');
+}
+
+// Season stats edit modal handlers
+function openSeasonStatsEditModal() {
+    const season = getCurrentSeason();
+    if (!season) return alert('No season selected');
+    // Populate structured fields
+    document.getElementById('recordWins').value = '';
+    document.getElementById('recordDraws').value = '';
+    document.getElementById('recordLosses').value = '';
+    document.getElementById('recordGF').value = '';
+    document.getElementById('recordGA').value = '';
+
+    // If the season has aggregated matches data, use it to fill record fields
+    if (season.matches && Array.isArray(season.matches) && season.matches.length > 0) {
+        const m0 = season.matches[0];
+        if ('wins' in m0 || 'goals_for' in m0) {
+            document.getElementById('recordWins').value = m0.wins || m0.won || '';
+            document.getElementById('recordDraws').value = m0.draws || m0.spares || m0.spare || '';
+            document.getElementById('recordLosses').value = m0.losses || m0.loss || '';
+            document.getElementById('recordGF').value = m0.goals_for || m0.goalsFor || '';
+            document.getElementById('recordGA').value = m0.goals_against || m0.goalsAgainst || '';
+            // populate extended fields
+            document.getElementById('totalsGames').value = m0.totals_games || m0.totalsGames || '';
+            document.getElementById('totalsGamesHome').value = m0.totals_games_at_home || m0.totals_games_home || '';
+            document.getElementById('totalsGamesAway').value = m0.totals_games_away || '';
+            document.getElementById('winsHome').value = m0.wins_at_home || m0.winsHome || '';
+            document.getElementById('drawsHome').value = m0.spares_at_home || m0.draws_at_home || '';
+            document.getElementById('lossesHome').value = m0.loss_at_home || m0.losses_at_home || '';
+            document.getElementById('winsAway').value = m0.wins_away || '';
+            document.getElementById('drawsAway').value = m0.spares_away || '';
+            document.getElementById('lossesAway').value = m0.loss_away || '';
+            document.getElementById('goalsForHome').value = m0.goals_for_home || '';
+            document.getElementById('goalsAgainstHome').value = m0.goals_against_home || '';
+            document.getElementById('goalsForAway').value = m0.goals_for_away || '';
+            document.getElementById('goalsAgainstAway').value = m0.goals_against_away || '';
+            document.getElementById('cleanSheetsTotal').value = m0.clean_sheets || '';
+            document.getElementById('cleanSheetsHome').value = m0.clean_sheets_home || '';
+            document.getElementById('cleanSheetsAway').value = m0.clean_sheets_away || '';
+            document.getElementById('recordSpares').value = m0.spares || m0.draws || '';
+        }
+    }
+
+    const trophiesContainer = document.getElementById('trophiesContainer');
+    trophiesContainer.innerHTML = '';
+    const trophies = season.trophies || [];
+    if (Array.isArray(trophies)) {
+        trophies.forEach((t, idx) => {
+            addTrophyRow(trophiesContainer, t.name || t, t.scope || '', idx === 0);
+        });
+    } else if (typeof trophies === 'object') {
+        // show object as entries
+        Object.keys(trophies).forEach(k => {
+            const arr = trophies[k] || [];
+            arr.forEach((t, idx) => addTrophyRow(trophiesContainer, t.name || t || '', k || '', false));
+        });
+    }
+
+    const awardsContainer = document.getElementById('awardsContainer');
+    awardsContainer.innerHTML = '';
+    const awards = season.playerAwards || [];
+    (Array.isArray(awards) ? awards : []).forEach(a => addAwardRow(awardsContainer, a));
+
+    document.getElementById('seasonStatsEditModal').classList.remove('hidden');
+}
+
+function closeSeasonStatsEditModal() {
+    document.getElementById('seasonStatsEditModal').classList.add('hidden');
+}
+
+function saveSeasonStatsEdits() {
+    const season = getCurrentSeason();
+    if (!season) return alert('No season selected');
+    try {
+        // record
+        const w = parseInt(document.getElementById('recordWins').value) || 0;
+        const d = parseInt(document.getElementById('recordDraws').value) || 0;
+        const l = parseInt(document.getElementById('recordLosses').value) || 0;
+        const gf = parseInt(document.getElementById('recordGF').value) || 0;
+        const ga = parseInt(document.getElementById('recordGA').value) || 0;
+
+        // write aggregated summary into season.matches[0] (preserves historical structures)
+        if (!season.matches || !Array.isArray(season.matches)) season.matches = [];
+        season.matches[0] = Object.assign({}, season.matches[0] || {}, {
+            totals_games: (w + d + l),
+            wins: w,
+            draws: d,
+            losses: l,
+            goals_for: gf,
+            goals_against: ga,
+            totals_games_at_home: parseInt(document.getElementById('totalsGamesHome').value) || undefined,
+            totals_games_away: parseInt(document.getElementById('totalsGamesAway').value) || undefined,
+            wins_at_home: parseInt(document.getElementById('winsHome').value) || undefined,
+            spares_at_home: parseInt(document.getElementById('drawsHome').value) || undefined,
+            loss_at_home: parseInt(document.getElementById('lossesHome').value) || undefined,
+            wins_away: parseInt(document.getElementById('winsAway').value) || undefined,
+            spares_away: parseInt(document.getElementById('drawsAway').value) || undefined,
+            loss_away: parseInt(document.getElementById('lossesAway').value) || undefined,
+            goals_for_home: parseInt(document.getElementById('goalsForHome').value) || undefined,
+            goals_against_home: parseInt(document.getElementById('goalsAgainstHome').value) || undefined,
+            goals_for_away: parseInt(document.getElementById('goalsForAway').value) || undefined,
+            goals_against_away: parseInt(document.getElementById('goalsAgainstAway').value) || undefined,
+            clean_sheets: parseInt(document.getElementById('cleanSheetsTotal').value) || undefined,
+            clean_sheets_home: parseInt(document.getElementById('cleanSheetsHome').value) || undefined,
+            clean_sheets_away: parseInt(document.getElementById('cleanSheetsAway').value) || undefined,
+            spares: parseInt(document.getElementById('recordSpares').value) || undefined
+        });
+
+        // trophies
+        const trophiesContainer = document.getElementById('trophiesContainer');
+        const trophyEls = trophiesContainer.querySelectorAll('[data-trophy-row]');
+        const newTrophies = [];
+        trophyEls.forEach(el => {
+            const name = el.querySelector('.trophy-name').value.trim();
+            const scope = el.querySelector('.trophy-scope').value.trim();
+            if (name) newTrophies.push({ name, scope });
+        });
+        season.trophies = newTrophies;
+
+        // awards
+        const awardsContainer = document.getElementById('awardsContainer');
+        const awardEls = awardsContainer.querySelectorAll('[data-award-row]');
+        const newAwards = [];
+        awardEls.forEach(el => {
+            const playerId = el.querySelector('.award-playerId').value.trim();
+            const awardName = el.querySelector('.award-name').value.trim();
+            const note = el.querySelector('.award-note').value.trim();
+            if (awardName) newAwards.push({ playerId: playerId || null, awardName, note: note || '' });
+        });
+        season.playerAwards = newAwards;
+
+        saveToStorage();
+        renderSeasonTabs();
+        renderPlayers();
+        try { renderSeasonStatsPanel(season); } catch (e) { console.warn(e); }
+        closeSeasonStatsEditModal();
+    } catch (e) {
+        console.warn('saveSeasonStatsEdits error', e);
+        alert('Error saving season edits.');
+    }
+}
+
+// helpers to add/remove trophy and award rows
+function addTrophyRow(container, name = '', scope = '') {
+    const idx = Math.random().toString(36).slice(2,8);
+    const row = document.createElement('div');
+    row.setAttribute('data-trophy-row', idx);
+    row.className = 'flex gap-2 items-center';
+    row.innerHTML = `
+        <input class="trophy-name border border-gray-300 rounded px-2 py-1" value="${escapeHtml(name)}" placeholder="Trophy name">
+        <input class="trophy-scope border border-gray-300 rounded px-2 py-1" value="${escapeHtml(scope)}" placeholder="scope (league/domestic/international)">
+        <button type="button" class="text-red-600 remove-trophy">Remove</button>
+    `;
+    container.appendChild(row);
+    row.querySelector('.remove-trophy').addEventListener('click', () => row.remove());
+}
+
+function addAwardRow(container, award = {}) {
+    const idx = Math.random().toString(36).slice(2,8);
+    const row = document.createElement('div');
+    row.setAttribute('data-award-row', idx);
+    row.className = 'grid grid-cols-1 md:grid-cols-4 gap-2 items-center';
+    // Build player select from current season players
+    const season = getCurrentSeason();
+    let playerSelectHtml = '';
+    if (season && season.roster) {
+        const playersObj = Object.assign({}, (season.roster.main_squad && season.roster.main_squad.players) || {}, (season.roster.youth_academy && season.roster.youth_academy.players) || {});
+        playerSelectHtml += `<select class="award-playerId border border-gray-300 rounded px-2 py-1"><option value="">-- Select player --</option>`;
+        Object.keys(playersObj).forEach(pid => {
+            const p = playersObj[pid] || {};
+            const name = `${p.firstName || ''} ${p.lastName || ''}`.trim() || pid;
+            const role = p.role ? ` (${p.role})` : '';
+            const selected = String(pid) === String(award.playerId) ? 'selected' : '';
+            playerSelectHtml += `<option value="${escapeHtml(pid)}" ${selected}>${escapeHtml(name + role)}</option>`;
+        });
+        playerSelectHtml += '</select>';
+    } else {
+        // fallback to text input if no season/players
+        playerSelectHtml = `<input class="award-playerId border border-gray-300 rounded px-2 py-1" value="${escapeHtml(award.playerId || '')}" placeholder="playerId">`;
+    }
+
+    row.innerHTML = `
+        ${playerSelectHtml}
+        <input class="award-name border border-gray-300 rounded px-2 py-1" value="${escapeHtml(award.awardName || '')}" placeholder="award name">
+        <input class="award-note border border-gray-300 rounded px-2 py-1" value="${escapeHtml(award.note || '')}" placeholder="note">
+        <div><button type="button" class="text-red-600 remove-award">Remove</button></div>
+    `;
+    container.appendChild(row);
+    row.querySelector('.remove-award').addEventListener('click', () => row.remove());
+}
+
+function escapeHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/**
  * Render charts
  */
 function renderCharts() {
@@ -2083,6 +2320,262 @@ function importData(event) {
 }
 
 // Make functions available globally for onclick handlers
+/**
+ * Season Stats Helpers
+ */
+function computeSeasonRecord(season) {
+    try {
+        if (!season || !season.matches) return null;
+
+        let wins = 0, draws = 0, losses = 0, gf = 0, ga = 0;
+
+        if (Array.isArray(season.matches)) {
+            season.matches.forEach(m => {
+                if (m == null) return;
+                // Aggregated season summary shape (e.g. wins, spares/draws, loss, goals_for, goals_against)
+                if ('wins' in m || 'goals_for' in m || 'goals_for' in m) {
+                    const w = Number(m.wins || 0);
+                    const d = Number(m.draws || m.spares || m.spare || 0);
+                    const l = Number(m.losses || m.loss || 0);
+                    const gfor = Number(m.goals_for || m.goalsFor || m.goals_for_home || 0);
+                    const gag = Number(m.goals_against || m.goalsAgainst || m.goals_against_home || 0);
+                    wins += w;
+                    draws += d;
+                    losses += l;
+                    gf += gfor;
+                    ga += gag;
+                    return;
+                }
+                if ('result' in m) {
+                    const r = (m.result || '').toUpperCase();
+                    if (r === 'W') wins++;
+                    else if (r === 'D') draws++;
+                    else if (r === 'L') losses++;
+                    gf += Number(m.goalsFor || m.goals || 0);
+                    ga += Number(m.goalsAgainst || m.goalsAgainst || 0) || Number(m.goalsAgainst || 0);
+                } else if ('homeGoals' in m || 'awayGoals' in m) {
+                    // array form
+                    const home = Number(m.homeGoals || 0);
+                    const away = Number(m.awayGoals || 0);
+                    const our = m.ourTeam ? (home) : (away);
+                    const opp = m.ourTeam ? (away) : (home);
+                    if (our > opp) wins++;
+                    else if (our === opp) draws++;
+                    else losses++;
+                    gf += our;
+                    ga += opp;
+                } else {
+                    // unknown shape: try to derive from goalsFor/goalsAgainst
+                    const gfor = Number(m.goalsFor || m.goals_for || 0);
+                    const gagainst = Number(m.goalsAgainst || m.goals_against || 0);
+                    if (gfor > gagainst) wins++;
+                    else if (gfor === gagainst) draws++;
+                    else losses++;
+                    gf += gfor;
+                    ga += gagainst;
+                }
+            });
+        }
+
+        return { wins, draws, losses, goalsFor: gf, goalsAgainst: ga };
+    } catch (e) {
+        console.warn('computeSeasonRecord error', e);
+        return null;
+    }
+}
+
+function computeSeasonTrophies(season) {
+    const out = { league: [], domestic: [], international: [] };
+    try {
+        if (!season) return out;
+        const t = season.trophies;
+        if (!t) return out;
+
+        if (Array.isArray(t)) {
+            t.forEach(item => {
+                const scope = (item.scope || '').toLowerCase();
+                const name = item.name || item.competition || item.competitionName || item.title || 'Unknown';
+                if (scope === 'league') out.league.push(name);
+                else if (scope === 'international') out.international.push(name);
+                else out.domestic.push(name);
+            });
+        } else if (typeof t === 'object') {
+            // Option B shape
+            if (Array.isArray(t.local)) {
+                t.local.forEach(it => {
+                    const n = it.name || it.title || 'Unknown';
+                    if (it.type === 'league') out.league.push(n);
+                    else out.domestic.push(n);
+                });
+            }
+            if (Array.isArray(t.international)) {
+                t.international.forEach(it => { out.international.push(it.name || it.title || 'Unknown'); });
+            }
+        }
+
+        // dedupe
+        out.league = Array.from(new Set(out.league));
+        out.domestic = Array.from(new Set(out.domestic));
+        out.international = Array.from(new Set(out.international));
+        return out;
+    } catch (e) {
+        console.warn('computeSeasonTrophies', e);
+        return out;
+    }
+}
+
+function computePlayerAwards(season) {
+    const out = [];
+    try {
+        if (!season || !season.playerAwards) return out;
+        const playersAll = Object.assign({}, (season.roster && season.roster.main_squad && season.roster.main_squad.players) || {}, (season.roster && season.roster.youth_academy && season.roster.youth_academy.players) || {});
+
+        season.playerAwards.forEach(a => {
+            const pid = a.playerId || a.id || null;
+            const awardName = a.awardName || a.name || 'Award';
+            const note = a.note || a.notes || '';
+            let resolvedName = `Unknown player (id:${pid})`;
+            let extra = {};
+            if (pid && playersAll[pid]) {
+                const p = playersAll[pid];
+                resolvedName = `${p.firstName || ''} ${p.lastName || ''}`.trim() || resolvedName;
+                extra = {
+                    appearances: p.appearances || null,
+                    goals: p.goals || null,
+                    assists: p.assists || null,
+                    avgRating: p.avgRating || null,
+                    overall: p.overall || null
+                };
+            }
+            out.push(Object.assign({ playerId: pid, name: resolvedName, awardName, note }, extra));
+        });
+
+        return out;
+    } catch (e) {
+        console.warn('computePlayerAwards', e);
+        return out;
+    }
+}
+
+function renderSeasonStatsPanel(season) {
+    try {
+        const rec = computeSeasonRecord(season);
+        const trophies = computeSeasonTrophies(season);
+        const awards = computePlayerAwards(season);
+
+        const recEl = document.getElementById('seasonRecord');
+        const trophiesLeagueEl = document.getElementById('seasonTrophiesLeague');
+        const trophiesDomesticEl = document.getElementById('seasonTrophiesDomestic');
+        const trophiesIntlEl = document.getElementById('seasonTrophiesInternational');
+        const awardsEl = document.getElementById('playerAwardsList');
+
+        if (recEl) {
+            if (!rec) recEl.innerHTML = '<div class="text-sm text-gray-600">No match data</div>';
+            else recEl.innerHTML = `<div class="season-stats-grid grid grid-cols-2 md:grid-cols-5 gap-2 text-sm">
+                <div><strong>Wins</strong><div>${rec.wins}</div></div>
+                <div><strong>Draws</strong><div>${rec.draws}</div></div>
+                <div><strong>Losses</strong><div>${rec.losses}</div></div>
+                <div><strong>Goals For</strong><div>${rec.goalsFor}</div></div>
+                <div><strong>Goals Against</strong><div>${rec.goalsAgainst}</div></div>
+            </div>`;
+        }
+
+        // show extended aggregated fields (if present in season.matches[0])
+        try {
+            const m0 = (season && Array.isArray(season.matches) && season.matches[0]) ? season.matches[0] : null;
+            if (m0) {
+                const extHtml = `<div class="mt-3 text-sm grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div><strong>Total games</strong><div>${m0.totals_games || m0.totalsGames || '-'}</div></div>
+                    <div><strong>Games at home</strong><div>${m0.totals_games_at_home || m0.totals_games_home || '-'}</div></div>
+                    <div><strong>Games away</strong><div>${m0.totals_games_away || '-'}</div></div>
+                    <div><strong>Wins (home)</strong><div>${m0.wins_at_home || '-'}</div></div>
+                    <div><strong>Draws (home)</strong><div>${m0.spares_at_home || m0.draws_at_home || '-'}</div></div>
+                    <div><strong>Losses (home)</strong><div>${m0.loss_at_home || m0.losses_at_home || '-'}</div></div>
+                    <div><strong>Wins (away)</strong><div>${m0.wins_away || '-'}</div></div>
+                    <div><strong>Draws (away)</strong><div>${m0.spares_away || '-'}</div></div>
+                    <div><strong>Losses (away)</strong><div>${m0.loss_away || '-'}</div></div>
+                    <div><strong>Goals for (home)</strong><div>${m0.goals_for_home || '-'}</div></div>
+                    <div><strong>Goals against (home)</strong><div>${m0.goals_against_home || '-'}</div></div>
+                    <div><strong>Goals for (away)</strong><div>${m0.goals_for_away || '-'}</div></div>
+                    <div><strong>Goals against (away)</strong><div>${m0.goals_against_away || '-'}</div></div>
+                    <div><strong>Clean sheets (total)</strong><div>${m0.clean_sheets || '-'}</div></div>
+                    <div><strong>Clean sheets (home)</strong><div>${m0.clean_sheets_home || '-'}</div></div>
+                    <div><strong>Clean sheets (away)</strong><div>${m0.clean_sheets_away || '-'}</div></div>
+                    <div><strong>Spares/Draws</strong><div>${m0.spares || m0.draws || '-'}</div></div>
+                </div>`;
+                recEl.insertAdjacentHTML('beforeend', extHtml);
+            }
+        } catch (e) { /* ignore */ }
+
+        function renderList(el, items) {
+            if (!el) return;
+            if (!items || items.length === 0) { el.innerHTML = '<li class="text-sm text-gray-500">None</li>'; return; }
+            el.innerHTML = items.map(i => `<li>${i}</li>`).join('');
+        }
+
+        renderList(trophiesLeagueEl, trophies.league);
+        renderList(trophiesDomesticEl, trophies.domestic);
+        renderList(trophiesIntlEl, trophies.international);
+
+        if (awardsEl) {
+            if (!awards || awards.length === 0) awardsEl.innerHTML = '<div class="text-sm text-gray-500">No awards</div>';
+            else {
+                awardsEl.innerHTML = awards.map(a => {
+                    return `<div class="mb-2">` +
+                        `<div class="font-medium">${a.name} — ${a.awardName}</div>` +
+                        `<div class="text-xs text-gray-600">Apps: ${a.appearances ?? '-'} | Goals: ${a.goals ?? '-'} | Assists: ${a.assists ?? '-'} | Rating: ${a.avgRating ?? '-'} | OVR: ${a.overall ?? '-'}</div>` +
+                        (a.note ? `<div class="text-xs text-gray-500">${a.note}</div>` : '') +
+                        `</div>`;
+                }).join('');
+            }
+        }
+
+    } catch (e) { console.warn('renderSeasonStatsPanel error', e); }
+}
+
+function exportSeasonStatsJSON() {
+    try {
+        const season = getCurrentSeason();
+        if (!season) return alert('No season selected');
+        const data = {
+            record: computeSeasonRecord(season),
+            trophies: computeSeasonTrophies(season),
+            playerAwards: computePlayerAwards(season)
+        };
+        const str = JSON.stringify(data, null, 2);
+        const uri = 'data:application/json;charset=utf-8,' + encodeURIComponent(str);
+        const a = document.createElement('a');
+        a.setAttribute('href', uri);
+        a.setAttribute('download', `season_stats_${season.name || season.id || 'export'}.json`);
+        a.click();
+    } catch (e) { console.warn('exportSeasonStatsJSON', e); }
+}
+
+function exportSeasonStatsCSV() {
+    try {
+        const season = getCurrentSeason();
+        if (!season) return alert('No season selected');
+        const record = computeSeasonRecord(season) || { wins: '', draws: '', losses: '', goalsFor: '', goalsAgainst: '' };
+        const awards = computePlayerAwards(season) || [];
+
+        // season_record.csv
+        const recCsv = ['wins,draws,losses,goalsFor,goalsAgainst', `${record.wins},${record.draws},${record.losses},${record.goalsFor},${record.goalsAgainst}`].join('\n');
+
+        // player_awards.csv header
+        const hdr = ['playerId,name,awardName,appearances,goals,assists,avgRating,overall,note'];
+        const rows = awards.map(a => [a.playerId || '', '"' + (a.name || '') + '"', '"' + (a.awardName || '') + '"', a.appearances ?? '', a.goals ?? '', a.assists ?? '', a.avgRating ?? '', a.overall ?? '', '"' + (a.note || '') + '"'].join(','));
+        const awardsCsv = hdr.concat(rows).join('\n');
+
+        // create multi-part download by zipping into a single blob with separators
+        const combined = `=== season_record.csv ===\n${recCsv}\n\n=== player_awards.csv ===\n${awardsCsv}`;
+        const uri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(combined);
+        const a = document.createElement('a');
+        a.setAttribute('href', uri);
+        a.setAttribute('download', `season_stats_${season.name || season.id || 'export'}.csv`);
+        a.click();
+    } catch (e) { console.warn('exportSeasonStatsCSV', e); }
+}
+
 window.editPlayer = editPlayer;
 window.deletePlayer = deletePlayer;
 window.promotePlayer = promotePlayer;
