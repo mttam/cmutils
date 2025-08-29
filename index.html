@@ -76,22 +76,23 @@
         <section class="mb-8">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
                 <h3 class="text-lg font-semibold mb-2 sm:mb-0" id="squadTitle">Main Squad</h3>
-                <div class="flex space-x-2">
-                    <button id="addPlayerBtn" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors">
+                <!-- Responsive button group: stacked full-width on small screens, inline on larger screens -->
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full">
+                    <button id="addPlayerBtn" class="bg-black text-white px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-gray-800 transition-colors text-sm sm:text-base w-full sm:w-auto">
                         Add Player
                     </button>
-                    <button id="nextSeasonBtn" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900 transition-colors">
+                    <button id="nextSeasonBtn" class="bg-gray-800 text-white px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-gray-900 transition-colors text-sm sm:text-base w-full sm:w-auto">
                         Next Season
                     </button>
-                    <button id="showChartsBtn" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors">
+                    <button id="showChartsBtn" class="bg-gray-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-gray-800 transition-colors text-sm sm:text-base w-full sm:w-auto">
                         Charts
                     </button>
-                        <button id="showTransfersBtn" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors">
-                            Transfers
-                        </button>
-                        <button id="showSeasonStatsBtn" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors">
-                            Season Stats
-                        </button>
+                    <button id="showTransfersBtn" class="bg-gray-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-gray-800 transition-colors text-sm sm:text-base w-full sm:w-auto">
+                        Transfers
+                    </button>
+                    <button id="showSeasonStatsBtn" class="bg-gray-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-gray-800 transition-colors text-sm sm:text-base w-full sm:w-auto">
+                        Season Stats
+                    </button>
                 </div>
             </div>
 
