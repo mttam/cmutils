@@ -369,7 +369,19 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Nationality</label>
-                        <input type="text" id="nationality" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                        <div class="relative">
+                            <div class="flex items-center gap-2">
+                                <button type="button" id="selectedFlagBtn" class="flex items-center gap-2 border border-gray-300 rounded px-2 py-1 bg-white">
+                                    <img id="selectedFlag" src="" alt="" style="width:22px;height:14px;display:none" />
+                                    <span id="selectedFlagText" class="text-sm text-gray-700">Select nationality</span>
+                                </button>
+                                <input type="text" id="nationality" class="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black" placeholder="Country name or code (e.g. Italy, IT)" aria-label="Nationality">
+                            </div>
+
+                            <div id="flagPicker" class="flag-picker hidden mt-2 p-2 bg-white border border-gray-200 rounded shadow max-h-40 overflow-auto">
+                                <!-- Flags will be inserted here by script.js -->
+                            </div>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Role *</label>

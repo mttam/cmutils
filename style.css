@@ -69,6 +69,62 @@
     transform: rotate(5deg);
 }
 
+/* Flag picker */
+.flag-picker {
+    display: block; /* hidden by default via .hidden class on element */
+    width: 100%;
+    max-width: 320px;
+    box-sizing: border-box;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.flag-picker .max-h-32 {
+    max-height: 200px !important;
+}
+
+.flag-picker .max-h-32::-webkit-scrollbar {
+    width: 6px;
+}
+
+.flag-picker .max-h-32::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.flag-picker .max-h-32::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.flag-picker .max-h-32::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+.flag-btn {
+    background: white;
+    border: none;
+    border-bottom: 1px solid #f3f4f6;
+    padding: 8px;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.flag-btn:last-child {
+    border-bottom: none;
+}
+
+.flag-btn img {
+    display: block;
+    border-radius: 2px;
+}
+
+.flag-picker .flag-btn:hover {
+    background-color: #f9fafb;
+}
+
 .drop-zone {
     border: 2px dashed #ccc;
     background-color: #f9f9f9;

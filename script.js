@@ -287,7 +287,8 @@ function renderPositionAverages(players) {
 
     positions.forEach(pos => {
         const a = averages[pos];
-        html += `<tr class="border-t"><td class="px-2 py-1">${pos}</td><td class="px-2 py-1">${a.nationality} (${a.nationalityCount})</td><td class="px-2 py-1">${a.overall}</td><td class="px-2 py-1">${a.potential}</td><td class="px-2 py-1">${a.contractEnd || 'N/A'}</td><td class="px-2 py-1">${a.skills}</td><td class="px-2 py-1">${a.weakFoot}</td><td class="px-2 py-1">${a.foot}</td><td class="px-2 py-1">${a.totalStats}</td><td class="px-2 py-1">${formatNumber(a.value)}</td><td class="px-2 py-1">${formatNumber(a.wage)}</td><td class="px-2 py-1">${a.appearances}</td><td class="px-2 py-1">${a.goals}</td><td class="px-2 py-1">${a.assists}</td><td class="px-2 py-1">${a.cleanSheets}</td><td class="px-2 py-1">${a.yellowCards}</td><td class="px-2 py-1">${a.redCards}</td><td class="px-2 py-1">${a.avgRating}</td></tr>`;
+        const natHtml = renderNationalityHTML(a.nationality, 16);
+        html += `<tr class="border-t"><td class="px-2 py-1">${pos}</td><td class="px-2 py-1">${natHtml} <span class="text-xs text-gray-500">(${a.nationalityCount})</span></td><td class="px-2 py-1">${a.overall}</td><td class="px-2 py-1">${a.potential}</td><td class="px-2 py-1">${a.contractEnd || 'N/A'}</td><td class="px-2 py-1">${a.skills}</td><td class="px-2 py-1">${a.weakFoot}</td><td class="px-2 py-1">${a.foot}</td><td class="px-2 py-1">${a.totalStats}</td><td class="px-2 py-1">${formatNumber(a.value)}</td><td class="px-2 py-1">${formatNumber(a.wage)}</td><td class="px-2 py-1">${a.appearances}</td><td class="px-2 py-1">${a.goals}</td><td class="px-2 py-1">${a.assists}</td><td class="px-2 py-1">${a.cleanSheets}</td><td class="px-2 py-1">${a.yellowCards}</td><td class="px-2 py-1">${a.redCards}</td><td class="px-2 py-1">${a.avgRating}</td></tr>`;
     });
 
     html += '</tbody></table>';
@@ -334,6 +335,301 @@ const GROUP_COLORS = {
     'Forwards': { color: '#EF4444', light: '#FEE2E2' }     // Red
 };
 
+// Country mapping: code -> { name, flagFile }
+// This maps common 3-letter codes used in sample data to flag filenames and English names.
+const COUNTRY_MAP = Object.assign({}, {
+    'AFG': { name: 'Afghanistan', flag: 'AF' },
+    'ALB': { name: 'Albania', flag: 'AL' },
+    'DZA': { name: 'Algeria', flag: 'DZ' },
+    'ASM': { name: 'American Samoa', flag: 'AS' },
+    'AND': { name: 'Andorra', flag: 'AD' },
+    'AGO': { name: 'Angola', flag: 'AO' },
+    'AIA': { name: 'Anguilla', flag: 'AI' },
+    'ATA': { name: 'Antarctica', flag: 'AQ' },
+    'ATG': { name: 'Antigua and Barbuda', flag: 'AG' },
+    'ARG': { name: 'Argentina', flag: 'AR' },
+    'ARM': { name: 'Armenia', flag: 'AM' },
+    'ABW': { name: 'Aruba', flag: 'AW' },
+    'AUS': { name: 'Australia', flag: 'AU' },
+    'AUT': { name: 'Austria', flag: 'AT' },
+    'AZE': { name: 'Azerbaijan', flag: 'AZ' },
+    'BHS': { name: 'Bahamas', flag: 'BS' },
+    'BHR': { name: 'Bahrain', flag: 'BH' },
+    'BGD': { name: 'Bangladesh', flag: 'BD' },
+    'BRB': { name: 'Barbados', flag: 'BB' },
+    'BLR': { name: 'Belarus', flag: 'BY' },
+    'BEL': { name: 'Belgium', flag: 'BE' },
+    'BLZ': { name: 'Belize', flag: 'BZ' },
+    'BEN': { name: 'Benin', flag: 'BJ' },
+    'BMU': { name: 'Bermuda', flag: 'BM' },
+    'BTN': { name: 'Bhutan', flag: 'BT' },
+    'BOL': { name: 'Bolivia', flag: 'BO' },
+    'BES': { name: 'Bonaire, Sint Eustatius and Saba', flag: 'BQ' },
+    'BIH': { name: 'Bosnia and Herzegovina', flag: 'BA' },
+    'BWA': { name: 'Botswana', flag: 'BW' },
+    'BVT': { name: 'Bouvet Island', flag: 'BV' },
+    'BRA': { name: 'Brazil', flag: 'BR' },
+    'IOT': { name: 'British Indian Ocean Territory', flag: 'IO' },
+    'VGB': { name: 'British Virgin Islands', flag: 'VG' },
+    'BRN': { name: 'Brunei Darussalam', flag: 'BN' },
+    'BGR': { name: 'Bulgaria', flag: 'BG' },
+    'BFA': { name: 'Burkina Faso', flag: 'BF' },
+    'BDI': { name: 'Burundi', flag: 'BI' },
+    'CPV': { name: 'Cabo Verde', flag: 'CV' },
+    'KHM': { name: 'Cambodia', flag: 'KH' },
+    'CMR': { name: 'Cameroon', flag: 'CM' },
+    'CAN': { name: 'Canada', flag: 'CA' },
+    'CYM': { name: 'Cayman Islands', flag: 'KY' },
+    'CAF': { name: 'Central African Republic', flag: 'CF' },
+    'TCD': { name: 'Chad', flag: 'TD' },
+    'CHL': { name: 'Chile', flag: 'CL' },
+    'CHN': { name: 'China', flag: 'CN' },
+    'CXR': { name: 'Christmas Island', flag: 'CX' },
+    'CCK': { name: 'Cocos (Keeling) Islands', flag: 'CC' },
+    'COL': { name: 'Colombia', flag: 'CO' },
+    'COM': { name: 'Comoros', flag: 'KM' },
+    'COD': { name: 'Congo, The Democratic Republic of the', flag: 'CD' },
+    'COG': { name: 'Congo', flag: 'CG' },
+    'COK': { name: 'Cook Islands', flag: 'CK' },
+    'CRI': { name: 'Costa Rica', flag: 'CR' },
+    'CIV': { name: 'Côte d\'Ivoire', flag: 'CI' },
+    'HRV': { name: 'Croatia', flag: 'HR' },
+    'CUB': { name: 'Cuba', flag: 'CU' },
+    'CUW': { name: 'Curaçao', flag: 'CW' },
+    'CYP': { name: 'Cyprus', flag: 'CY' },
+    'CZE': { name: 'Czechia', flag: 'CZ' },
+    'DNK': { name: 'Denmark', flag: 'DK' },
+    'DJI': { name: 'Djibouti', flag: 'DJ' },
+    'DMA': { name: 'Dominica', flag: 'DM' },
+    'DOM': { name: 'Dominican Republic', flag: 'DO' },
+    'ECU': { name: 'Ecuador', flag: 'EC' },
+    'EGY': { name: 'Egypt', flag: 'EG' },
+    'SLV': { name: 'El Salvador', flag: 'SV' },
+    'GNQ': { name: 'Equatorial Guinea', flag: 'GQ' },
+    'ERI': { name: 'Eritrea', flag: 'ER' },
+    'EST': { name: 'Estonia', flag: 'EE' },
+    'SWZ': { name: 'Eswatini', flag: 'SZ' },
+    'ETH': { name: 'Ethiopia', flag: 'ET' },
+    'FLK': { name: 'Falkland Islands (Malvinas)', flag: 'FK' },
+    'FRO': { name: 'Faroe Islands', flag: 'FO' },
+    'FJI': { name: 'Fiji', flag: 'FJ' },
+    'FIN': { name: 'Finland', flag: 'FI' },
+    'FRA': { name: 'France', flag: 'FR' },
+    'GUF': { name: 'French Guiana', flag: 'GF' },
+    'PYF': { name: 'French Polynesia', flag: 'PF' },
+    'ATF': { name: 'French Southern Territories', flag: 'TF' },
+    'GAB': { name: 'Gabon', flag: 'GA' },
+    'GMB': { name: 'Gambia', flag: 'GM' },
+    'GEO': { name: 'Georgia', flag: 'GE' },
+    'DEU': { name: 'Germany', flag: 'DE' },
+    'GHA': { name: 'Ghana', flag: 'GH' },
+    'GIB': { name: 'Gibraltar', flag: 'GI' },
+    'GRC': { name: 'Greece', flag: 'GR' },
+    'GRL': { name: 'Greenland', flag: 'GL' },
+    'GRD': { name: 'Grenada', flag: 'GD' },
+    'GLP': { name: 'Guadeloupe', flag: 'GP' },
+    'GUM': { name: 'Guam', flag: 'GU' },
+    'GTM': { name: 'Guatemala', flag: 'GT' },
+    'GGY': { name: 'Guernsey', flag: 'GG' },
+    'GIN': { name: 'Guinea', flag: 'GN' },
+    'GNB': { name: 'Guinea-Bissau', flag: 'GW' },
+    'GUY': { name: 'Guyana', flag: 'GY' },
+    'HTI': { name: 'Haiti', flag: 'HT' },
+    'HMD': { name: 'Heard Island and McDonald Islands', flag: 'HM' },
+    'VAT': { name: 'Holy See (Vatican City State)', flag: 'VA' },
+    'HND': { name: 'Honduras', flag: 'HN' },
+    'HKG': { name: 'Hong Kong', flag: 'HK' },
+    'HUN': { name: 'Hungary', flag: 'HU' },
+    'ISL': { name: 'Iceland', flag: 'IS' },
+    'IND': { name: 'India', flag: 'IN' },
+    'IDN': { name: 'Indonesia', flag: 'ID' },
+    'IRN': { name: 'Iran', flag: 'IR' },
+    'IRQ': { name: 'Iraq', flag: 'IQ' },
+    'IRL': { name: 'Ireland', flag: 'IE' },
+    'IMN': { name: 'Isle of Man', flag: 'IM' },
+    'ISR': { name: 'Israel', flag: 'IL' },
+    'ITA': { name: 'Italy', flag: 'IT' },
+    'JAM': { name: 'Jamaica', flag: 'JM' },
+    'JPN': { name: 'Japan', flag: 'JP' },
+    'JEY': { name: 'Jersey', flag: 'JE' },
+    'JOR': { name: 'Jordan', flag: 'JO' },
+    'KAZ': { name: 'Kazakhstan', flag: 'KZ' },
+    'KEN': { name: 'Kenya', flag: 'KE' },
+    'KIR': { name: 'Kiribati', flag: 'KI' },
+    'KOR': { name: 'Korea (Republic of)', flag: 'KR' },
+    'PRK': { name: 'Korea (Democratic People\'s Republic of)', flag: 'KP' },
+    'XKS': { name: 'Kosovo', flag: 'XK' },
+    'KWT': { name: 'Kuwait', flag: 'KW' },
+    'KGZ': { name: 'Kyrgyzstan', flag: 'KG' },
+    'LAO': { name: 'Laos', flag: 'LA' },
+    'LVA': { name: 'Latvia', flag: 'LV' },
+    'LBN': { name: 'Lebanon', flag: 'LB' },
+    'LSO': { name: 'Lesotho', flag: 'LS' },
+    'LBR': { name: 'Liberia', flag: 'LR' },
+    'LBY': { name: 'Libya', flag: 'LY' },
+    'LIE': { name: 'Liechtenstein', flag: 'LI' },
+    'LTU': { name: 'Lithuania', flag: 'LT' },
+    'LUX': { name: 'Luxembourg', flag: 'LU' },
+    'MAC': { name: 'Macao', flag: 'MO' },
+    'MDG': { name: 'Madagascar', flag: 'MG' },
+    'MWI': { name: 'Malawi', flag: 'MW' },
+    'MYS': { name: 'Malaysia', flag: 'MY' },
+    'MDV': { name: 'Maldives', flag: 'MV' },
+    'MLI': { name: 'Mali', flag: 'ML' },
+    'MLT': { name: 'Malta', flag: 'MT' },
+    'MHL': { name: 'Marshall Islands', flag: 'MH' },
+    'MTQ': { name: 'Martinique', flag: 'MQ' },
+    'MRT': { name: 'Mauritania', flag: 'MR' },
+    'MUS': { name: 'Mauritius', flag: 'MU' },
+    'MYT': { name: 'Mayotte', flag: 'YT' },
+    'MEX': { name: 'Mexico', flag: 'MX' },
+    'FSM': { name: 'Micronesia', flag: 'FM' },
+    'MDA': { name: 'Moldova', flag: 'MD' },
+    'MCO': { name: 'Monaco', flag: 'MC' },
+    'MNG': { name: 'Mongolia', flag: 'MN' },
+    'MNE': { name: 'Montenegro', flag: 'ME' },
+    'MSR': { name: 'Montserrat', flag: 'MS' },
+    'MAR': { name: 'Morocco', flag: 'MA' },
+    'MOZ': { name: 'Mozambique', flag: 'MZ' },
+    'MMR': { name: 'Myanmar', flag: 'MM' },
+    'NAM': { name: 'Namibia', flag: 'NA' },
+    'NRU': { name: 'Nauru', flag: 'NR' },
+    'NPL': { name: 'Nepal', flag: 'NP' },
+    'NLD': { name: 'Netherlands', flag: 'NL' },
+    'NCL': { name: 'New Caledonia', flag: 'NC' },
+    'NZL': { name: 'New Zealand', flag: 'NZ' },
+    'NIC': { name: 'Nicaragua', flag: 'NI' },
+    'NER': { name: 'Niger', flag: 'NE' },
+    'NGA': { name: 'Nigeria', flag: 'NG' },
+    'NIU': { name: 'Niue', flag: 'NU' },
+    'NFK': { name: 'Norfolk Island', flag: 'NF' },
+    'MKD': { name: 'North Macedonia', flag: 'MK' },
+    'MNP': { name: 'Northern Mariana Islands', flag: 'MP' },
+    'NOR': { name: 'Norway', flag: 'NO' },
+    'OMN': { name: 'Oman', flag: 'OM' },
+    'PAK': { name: 'Pakistan', flag: 'PK' },
+    'PLW': { name: 'Palau', flag: 'PW' },
+    'PSE': { name: 'Palestine', flag: 'PS' },
+    'PAN': { name: 'Panama', flag: 'PA' },
+    'PNG': { name: 'Papua New Guinea', flag: 'PG' },
+    'PRY': { name: 'Paraguay', flag: 'PY' },
+    'PER': { name: 'Peru', flag: 'PE' },
+    'PHL': { name: 'Philippines', flag: 'PH' },
+    'PCN': { name: 'Pitcairn', flag: 'PN' },
+    'POL': { name: 'Poland', flag: 'PL' },
+    'PRT': { name: 'Portugal', flag: 'PT' },
+    'PRI': { name: 'Puerto Rico', flag: 'PR' },
+    'QAT': { name: 'Qatar', flag: 'QA' },
+    'REU': { name: 'Réunion', flag: 'RE' },
+    'ROU': { name: 'Romania', flag: 'RO' },
+    'RUS': { name: 'Russia', flag: 'RU' },
+    'RWA': { name: 'Rwanda', flag: 'RW' },
+    'BLM': { name: 'Saint Barthélemy', flag: 'BL' },
+    'SHN': { name: 'Saint Helena', flag: 'SH' },
+    'KNA': { name: 'Saint Kitts and Nevis', flag: 'KN' },
+    'LCA': { name: 'Saint Lucia', flag: 'LC' },
+    'MAF': { name: 'Saint Martin (French part)', flag: 'MF' },
+    'SPM': { name: 'Saint Pierre and Miquelon', flag: 'PM' },
+    'VCT': { name: 'Saint Vincent and the Grenadines', flag: 'VC' },
+    'WSM': { name: 'Samoa', flag: 'WS' },
+    'SMR': { name: 'San Marino', flag: 'SM' },
+    'STP': { name: 'Sao Tome and Principe', flag: 'ST' },
+    'SAU': { name: 'Saudi Arabia', flag: 'SA' },
+    'SEN': { name: 'Senegal', flag: 'SN' },
+    'SRB': { name: 'Serbia', flag: 'RS' },
+    'SYC': { name: 'Seychelles', flag: 'SC' },
+    'SLE': { name: 'Sierra Leone', flag: 'SL' },
+    'SGP': { name: 'Singapore', flag: 'SG' },
+    'SXM': { name: 'Sint Maarten (Dutch part)', flag: 'SX' },
+    'SVK': { name: 'Slovakia', flag: 'SK' },
+    'SVN': { name: 'Slovenia', flag: 'SI' },
+    'SLB': { name: 'Solomon Islands', flag: 'SB' },
+    'SOM': { name: 'Somalia', flag: 'SO' },
+    'ZAF': { name: 'South Africa', flag: 'ZA' },
+    'SGS': { name: 'South Georgia and the South Sandwich Islands', flag: 'GS' },
+    'SSD': { name: 'South Sudan', flag: 'SS' },
+    'ESP': { name: 'Spain', flag: 'ES' },
+    'LKA': { name: 'Sri Lanka', flag: 'LK' },
+    'SDN': { name: 'Sudan', flag: 'SD' },
+    'SUR': { name: 'Suriname', flag: 'SR' },
+    'SJM': { name: 'Svalbard and Jan Mayen', flag: 'SJ' },
+    'SWE': { name: 'Sweden', flag: 'SE' },
+    'CHE': { name: 'Switzerland', flag: 'CH' },
+    'SYR': { name: 'Syria', flag: 'SY' },
+    'TWN': { name: 'Taiwan', flag: 'TW' },
+    'TJK': { name: 'Tajikistan', flag: 'TJ' },
+    'TZA': { name: 'Tanzania', flag: 'TZ' },
+    'THA': { name: 'Thailand', flag: 'TH' },
+    'TLS': { name: 'Timor-Leste', flag: 'TL' },
+    'TGO': { name: 'Togo', flag: 'TG' },
+    'TKL': { name: 'Tokelau', flag: 'TK' },
+    'TON': { name: 'Tonga', flag: 'TO' },
+    'TTO': { name: 'Trinidad and Tobago', flag: 'TT' },
+    'TUN': { name: 'Tunisia', flag: 'TN' },
+    'TUR': { name: 'Turkey', flag: 'TR' },
+    'TKM': { name: 'Turkmenistan', flag: 'TM' },
+    'TCA': { name: 'Turks and Caicos Islands', flag: 'TC' },
+    'TUV': { name: 'Tuvalu', flag: 'TV' },
+    'UGA': { name: 'Uganda', flag: 'UG' },
+    'UKR': { name: 'Ukraine', flag: 'UA' },
+    'ARE': { name: 'United Arab Emirates', flag: 'AE' },
+    'GBR': { name: 'United Kingdom', flag: 'GB' },
+    'USA': { name: 'United States', flag: 'US' },
+    'UMI': { name: 'United States Minor Outlying Islands', flag: 'UM' },
+    'VIR': { name: 'United States Virgin Islands', flag: 'VI' },
+    'URY': { name: 'Uruguay', flag: 'UY' },
+    'UZB': { name: 'Uzbekistan', flag: 'UZ' },
+    'VUT': { name: 'Vanuatu', flag: 'VU' },
+    'VEN': { name: 'Venezuela', flag: 'VE' },
+    'VNM': { name: 'Vietnam', flag: 'VN' },
+    'WLF': { name: 'Wallis and Futuna', flag: 'WF' },
+    'ESH': { name: 'Western Sahara', flag: 'EH' },
+    'YEM': { name: 'Yemen', flag: 'YE' },
+    'ZMB': { name: 'Zambia', flag: 'ZM' },
+    'ZWE': { name: 'Zimbabwe', flag: 'ZW' },
+    'ENG': { name: 'England', flag: 'GB-ENG' },
+    'SCT': { name: 'Scotland', flag: 'GB-SCT' },
+    'WLS': { name: 'Wales', flag: 'GB-WLS' },
+    'NIR': { name: 'Northern Ireland', flag: 'GB-NIR' },
+    'GB': { name: 'United Kingdom', flag: 'GB' },
+    'GER': { name: 'Germany', flag: 'DE' },
+    'IRE': { name: 'Ireland', flag: 'IE' },
+    'POR': { name: 'Portugal', flag: 'PT' },
+    'UK': { name: 'United Kingdom', flag: 'GB' }
+});
+
+/**
+ * Render nationality as HTML: flag SVG + English name (falls back to code or 'Unknown')
+ * Accepts codes like 'ENG', 'IT', 'GB-ENG' and returns an HTML string.
+ */
+function renderNationalityHTML(code, imgSize = 18) {
+    const c = (code || '').toString().trim();
+    if (!c) return '<span class="text-sm text-gray-500">Unknown</span>';
+
+    // Determine mapping
+    const mapping = COUNTRY_MAP[c] || COUNTRY_MAP[c.toUpperCase()];
+    let name = c;
+    let flagFile = c;
+    if (mapping) {
+        name = mapping.name || c;
+        flagFile = mapping.flag || c;
+    } else {
+        // If it's a 3-letter not in map, try using first 2 letters as flag filename
+        if (c.length === 3) {
+            flagFile = c.substring(0,2).toUpperCase();
+        }
+    }
+
+    const imgSrc = `flags/${flagFile}.svg`;
+    // Return an inline HTML snippet. img has onerror to hide itself if file missing.
+    return `
+        <span class="inline-flex items-center gap-2">
+            <img src="${imgSrc}" alt="${name}" style="width:${imgSize}px;height:${Math.round(imgSize*0.64)}px;" onerror="this.style.display='none'" />
+            <span class="text-sm text-gray-700">${escapeHtml(name)}</span>
+        </span>
+    `;
+}
+
 // Currency symbols
 const CURRENCY_SYMBOLS = {
     'USD': '$',
@@ -346,7 +642,227 @@ document.addEventListener('DOMContentLoaded', function() {
     loadFromStorage();
     setupEventListeners();
     initializeApp();
+    // initialize flag picker UI
+    try { setupFlagPicker(); } catch (e) { console.warn('Flag picker init failed', e); }
 });
+
+// Initialize flag picker after DOM is ready
+function setupFlagPicker() {
+    const picker = document.getElementById('flagPicker');
+    const selectedImg = document.getElementById('selectedFlag');
+    const selectedText = document.getElementById('selectedFlagText');
+    const nationalityInput = document.getElementById('nationality');
+    const selectedFlagBtn = document.getElementById('selectedFlagBtn');
+    if (!picker || !selectedImg || !selectedText || !nationalityInput) return;
+
+    // Create searchable country list from COUNTRY_MAP
+    const searchableCountries = [];
+    
+    // Add countries from COUNTRY_MAP with their names and codes
+    Object.entries(COUNTRY_MAP).forEach(([code, data]) => {
+        searchableCountries.push({
+            code: code,
+            name: data.name,
+            flag: data.flag,
+            searchText: `${data.name.toLowerCase()} ${code.toLowerCase()}`
+        });
+    });
+
+    // Known flag codes (files exist in ./flags) - fallback for codes not in COUNTRY_MAP
+    const flagCodes = [
+        'AD','AE','AF','AG','AI','AL','AM','AO','AR','AT','AU','AZ','BA','BB','BD','BE','BF','BG','BH','BI','BJ','BL','BM','BN','BO','BR','BS','BT','BW','BY','BZ','CA','CH','CL','CN','CO','CR','CU','CY','CZ','DE','DJ','DK','DO','DZ','EC','EE','EG','ES','ET','FI','FJ','FK','FM','FR','GB','GB-ENG','GB-SCT','GB-WLS','GB-NIR','GE','GF','GG','GH','GI','GL','GM','GN','GP','GQ','GR','GT','GU','GW','GY','HK','HN','HR','HT','HU','ID','IE','IL','IM','IN','IQ','IR','IS','IT','JE','JM','JO','JP','KE','KG','KH','KI','KM','KN','KP','KR','KW','KY','KZ','LA','LB','LC','LI','LK','LR','LS','LT','LU','LV','LY','MA','MC','MD','ME','MF','MG','MH','MK','ML','MM','MN','MO','MP','MQ','MR','MS','MT','MU','MV','MW','MX','MY','MZ','NA','NC','NE','NF','NG','NI','NL','NO','NP','NR','NU','NZ','OM','PA','PE','PF','PG','PH','PK','PL','PM','PN','PR','PS','PT','PW','PY','QA','RE','RO','RS','RU','RW','SA','SB','SC','SD','SE','SG','SH','SI','SJ','SK','SL','SM','SN','SO','SR','SS','ST','SV','SX','SY','SZ','TC','TD','TF','TG','TH','TJ','TK','TL','TM','TN','TO','TR','TT','TV','TW','TZ','UA','UG','US','UY','UZ','VA','VC','VE','VG','VI','VN','VU','WS','YE','YT','ZA','ZM','ZW'
+    ];
+
+    // Add any remaining flag codes not in COUNTRY_MAP
+    flagCodes.forEach(code => {
+        if (!searchableCountries.find(c => c.code === code || c.flag === code)) {
+            searchableCountries.push({
+                code: code,
+                name: code,
+                flag: code,
+                searchText: code.toLowerCase()
+            });
+        }
+    });
+
+    // Sort countries alphabetically by name
+    searchableCountries.sort((a, b) => a.name.localeCompare(b.name));
+
+    function renderCountries(countries = searchableCountries) {
+        picker.innerHTML = '';
+        
+        // Add search input at the top
+        const searchContainer = document.createElement('div');
+        searchContainer.className = 'p-2 border-b border-gray-200';
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.placeholder = 'Search countries...';
+        searchInput.className = 'w-full px-2 py-1 border border-gray-300 rounded text-sm';
+        searchContainer.appendChild(searchInput);
+        picker.appendChild(searchContainer);
+
+        // Add countries container
+        const countriesContainer = document.createElement('div');
+        countriesContainer.className = 'max-h-32 overflow-auto';
+        picker.appendChild(countriesContainer);
+
+        countries.forEach(country => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'flag-btn flex items-center w-full p-2 m-0 border-b border-gray-100 hover:bg-gray-50 text-left';
+            btn.dataset.code = country.code;
+            btn.dataset.flag = country.flag;
+            
+            const img = document.createElement('img');
+            img.src = `flags/${country.flag}.svg`;
+            img.alt = country.name;
+            img.style.width = '24px';
+            img.style.height = '16px';
+            img.className = 'mr-2 flex-shrink-0';
+            img.onerror = function() { btn.style.display = 'none'; };
+            
+            const textSpan = document.createElement('span');
+            textSpan.className = 'text-sm';
+            textSpan.textContent = `${country.name} (${country.code})`;
+            
+            btn.appendChild(img);
+            btn.appendChild(textSpan);
+            
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectedImg.src = `flags/${country.flag}.svg`;
+                selectedImg.style.display = '';
+                selectedText.textContent = country.name;
+                nationalityInput.value = country.code;
+                picker.classList.add('hidden');
+            });
+            
+            countriesContainer.appendChild(btn);
+        });
+
+        // Handle search input
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const filteredCountries = searchableCountries.filter(country => 
+                country.searchText.includes(searchTerm)
+            );
+            
+            // Re-render only the countries container
+            countriesContainer.innerHTML = '';
+            filteredCountries.forEach(country => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'flag-btn flex items-center w-full p-2 m-0 border-b border-gray-100 hover:bg-gray-50 text-left';
+                btn.dataset.code = country.code;
+                btn.dataset.flag = country.flag;
+                
+                const img = document.createElement('img');
+                img.src = `flags/${country.flag}.svg`;
+                img.alt = country.name;
+                img.style.width = '24px';
+                img.style.height = '16px';
+                img.className = 'mr-2 flex-shrink-0';
+                img.onerror = function() { btn.style.display = 'none'; };
+                
+                const textSpan = document.createElement('span');
+                textSpan.className = 'text-sm';
+                textSpan.textContent = `${country.name} (${country.code})`;
+                
+                btn.appendChild(img);
+                btn.appendChild(textSpan);
+                
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectedImg.src = `flags/${country.flag}.svg`;
+                    selectedImg.style.display = '';
+                    selectedText.textContent = country.name;
+                    nationalityInput.value = country.code;
+                    picker.classList.add('hidden');
+                });
+                
+                countriesContainer.appendChild(btn);
+            });
+        });
+
+        // Focus search input when picker opens
+        setTimeout(() => searchInput.focus(), 50);
+    }
+
+    // Initial render
+    renderCountries();
+
+    // Toggle picker visibility
+    if (selectedFlagBtn) {
+        selectedFlagBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            picker.classList.toggle('hidden');
+            if (!picker.classList.contains('hidden')) {
+                renderCountries(); // Re-render to reset search
+            }
+        });
+    }
+
+    // Close picker when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!picker.contains(e.target) && !selectedFlagBtn.contains(e.target)) {
+            picker.classList.add('hidden');
+        }
+    });
+
+    // Sync input -> selected flag when user types a value
+    nationalityInput.addEventListener('input', () => {
+        const v = nationalityInput.value.trim();
+        if (!v) {
+            selectedImg.style.display = 'none';
+            selectedText.textContent = 'Select nationality';
+            return;
+        }
+
+        // Try to find matching country by code or name
+        const country = searchableCountries.find(c => 
+            c.code.toLowerCase() === v.toLowerCase() || 
+            c.name.toLowerCase() === v.toLowerCase()
+        );
+
+        if (country) {
+            selectedImg.src = `flags/${country.flag}.svg`;
+            selectedImg.style.display = '';
+            selectedText.textContent = country.name;
+        } else {
+            // Fallback to using input value as flag code
+            selectedImg.src = `flags/${v.toUpperCase()}.svg`;
+            selectedImg.style.display = '';
+            selectedText.textContent = v.toUpperCase();
+        }
+    });
+
+    nationalityInput.addEventListener('change', () => {
+        const v = nationalityInput.value.trim();
+        if (!v) {
+            selectedImg.style.display = 'none';
+            selectedText.textContent = 'Select nationality';
+            return;
+        }
+
+        // Try to find matching country by code or name
+        const country = searchableCountries.find(c => 
+            c.code.toLowerCase() === v.toLowerCase() || 
+            c.name.toLowerCase() === v.toLowerCase()
+        );
+
+        if (country) {
+            selectedImg.src = `flags/${country.flag}.svg`;
+            selectedImg.style.display = '';
+            selectedText.textContent = country.name;
+            nationalityInput.value = country.code; // Store the code
+        } else {
+            // Fallback to using input value as flag code
+            selectedImg.src = `flags/${v.toUpperCase()}.svg`;
+            selectedImg.style.display = '';
+            selectedText.textContent = v.toUpperCase();
+        }
+    });
+}
     // Transfer list keys used in season.roster.transfers
     const TRANSFER_KEYS = {
         forSale: 'forSale',
@@ -821,7 +1337,7 @@ function renderTransfers() {
                         <div class="flex justify-between items-start mb-2">
                             <div>
                                 <div class="font-semibold">${p.firstName} ${p.lastName}</div>
-                                <div class="text-sm text-gray-500">${p.nationality || 'Unknown'} • ${p.role || '-'}</div>
+                                <div class="text-sm text-gray-500">${renderNationalityHTML(p.nationality)} • ${p.role || '-'}</div>
                             </div>
                             <div class="flex items-center gap-2">
                                 <button onclick="showTransferInPlayers('${listKey}','${p.id}')" class="text-blue-600" title="Add the player to the main squad">➕</button>
@@ -1027,7 +1543,7 @@ function renderPlayersTable(groupedPlayers) {
                     <tr draggable="true" data-player-id="${player.id}" data-position-group="${groupName}" class="player-row ${groupClass} ${isForSale ? 'for-sale' : ''}${isOnLoan ? ' on-loan' : ''}">
                         <td>
                             <div class="font-medium">${player.firstName} ${player.lastName} ${isOnLoan ? `<span class="on-loan-badge" onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.loan}')" title="Toggle Loan">Loan</span>` : ''} ${isForSale ? `<span class="for-sale-badge" onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.forSale}')" title="Toggle For Sale">For Sale</span>` : ''}</div>
-                            <div class="text-sm text-gray-500">${player.nationality || 'Unknown'}</div>
+                            <div class="text-sm text-gray-500">${renderNationalityHTML(player.nationality)}</div>
                         </td>
                         <td><span class="font-mono text-sm">${player.role}</span></td>
                         <td>${player.overall || '-'}</td>
@@ -1095,7 +1611,7 @@ function renderPlayersCards(groupedPlayers) {
                         <div class="flex justify-between items-start mb-2">
                             <div>
                                 <div class="font-semibold">${player.firstName} ${player.lastName} ${isOnLoan ? `<span class="on-loan-badge" onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.loan}')" title="Toggle Loan">Loan</span>` : ''} ${isForSale ? `<span class="for-sale-badge" onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.forSale}')" title="Toggle For Sale">For Sale</span>` : ''}</div>
-                                <div class="text-sm text-gray-500">${player.nationality || 'Unknown'} • ${player.role}</div>
+                                <div class="text-sm text-gray-500">${renderNationalityHTML(player.nationality)} • ${player.role}</div>
                             </div>
                             <div class="flex space-x-1 items-center">
                                 <button onclick="editPlayer('${player.id}')" class="text-blue-600" title="Edit">✏️</button>
@@ -1628,6 +2144,21 @@ function populatePlayerForm(player) {
     document.getElementById('yellowCards').value = player.yellowCards || '';
     document.getElementById('redCards').value = player.redCards || '';
     document.getElementById('avgRating').value = player.avgRating || '';
+
+    // Show selected flag if available
+    const selectedImg = document.getElementById('selectedFlag');
+    const selectedText = document.getElementById('selectedFlagText');
+    if (selectedImg && selectedText) {
+        const nat = (player.nationality || '').trim();
+        if (nat) {
+            selectedImg.src = `flags/${nat}.svg`;
+            selectedImg.style.display = '';
+            selectedText.textContent = nat;
+        } else {
+            selectedImg.style.display = 'none';
+            selectedText.textContent = 'Select nationality';
+        }
+    }
 }
 
 /**
@@ -1639,6 +2170,14 @@ function closePlayerModal() {
     editingPlayerId = null;
     editingTransferKey = null;
     clearPlayerErrors();
+
+    // Reset flag picker display
+    const selectedImg = document.getElementById('selectedFlag');
+    const selectedText = document.getElementById('selectedFlagText');
+    if (selectedImg && selectedText) {
+        selectedImg.style.display = 'none';
+        selectedText.textContent = 'Select nationality';
+    }
 }
 
 /**
