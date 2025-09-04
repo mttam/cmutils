@@ -175,7 +175,7 @@
         { "playerId": null, "awardName": "Golden Boot", "note": "Top scorer" },
         { "playerId": null, "awardName": "Player of the Season" }
       ],
-      "transfers": { "forSale": [], "sold": [], "released": [], "toBuyClub": [], "toBuyReleased": [] }
+  "transfers": { "forSale": [], "sold": [], "released": [], "retired": [], "loan": [], "toBuyClub": [], "toBuyReleased": [] }
     },
     {
       "id": null,

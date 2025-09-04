@@ -351,8 +351,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const TRANSFER_KEYS = {
         forSale: 'forSale',
         sold: 'sold',
-    released: 'released',
-    loan: 'loan',
+        released: 'released',
+        retired: 'retired',
+        loan: 'loan',
         toBuyClub: 'toBuyClub',
         toBuyReleased: 'toBuyReleased'
     };
@@ -600,6 +601,8 @@ function validateAndCleanSeasons(seasons) {
                 forSale: [],
                 sold: [],
                 released: [],
+                retired: [],
+                loan: [],
                 toBuyClub: [],
                 toBuyReleased: []
             };
@@ -648,7 +651,7 @@ function validateAndCleanSeasons(seasons) {
  */
 function getSeasonTransfers(season) {
     if (!season) return null;
-    if (!season.transfers) season.transfers = { forSale: [], sold: [], released: [], loan: [], toBuyClub: [], toBuyReleased: [] };
+    if (!season.transfers) season.transfers = { forSale: [], sold: [], released: [], retired: [], loan: [], toBuyClub: [], toBuyReleased: [] };
     return season.transfers;
 }
 
@@ -661,10 +664,23 @@ function addPlayerToTransferList(playerId, key) {
 
     const transfers = getSeasonTransfers(season);
 
+    // Ensure the target transfer list exists
+    if (!Array.isArray(transfers[key])) transfers[key] = [];
+
     // snapshot of player
     const snapshot = Object.assign({}, player);
 
-    if (key === TRANSFER_KEYS.sold || key === TRANSFER_KEYS.released) {
+    // Handle one-way permanent actions explicitly
+    if (key === TRANSFER_KEYS.retired) {
+        // Confirm retire action with the user
+        if (!confirm(`Are you sure you want to retire ${player.firstName} ${player.lastName}? This will remove them from your squads.`)) return;
+        // mark snapshot as retired for clarity
+        snapshot.retired = true;
+        snapshot.retiredAt = new Date().toISOString().split('T')[0];
+        // remove from all squads for permanent changes
+        delete season.roster.main_squad.players[playerId];
+        delete season.roster.youth_academy.players[playerId];
+    } else if (key === TRANSFER_KEYS.sold || key === TRANSFER_KEYS.released) {
         // remove from all squads for permanent changes (sold/released)
         delete season.roster.main_squad.players[playerId];
         delete season.roster.youth_academy.players[playerId];
@@ -792,9 +808,9 @@ function renderTransfers() {
 
         let html = `<div class="position-group mb-4">
             <div class="position-group-header flex justify-between items-center">${title} <div class="space-x-2">${addBtnHtml}<button onclick="clearTransferList('${listKey}')" class="text-xs text-red-600">Clear</button></div></div>`;
-        if (list.length === 0) {
-            html += `<div class="p-4 text-sm text-gray-600">No players</div>`;
-        } else {
+            if (list.length === 0) { 
+                html += `<div class="p-4 text-sm text-gray-600">No players available</div>`;
+            } else { 
             list.forEach(p => {
                 // compute group class so styling matches main player cards
                 const grp = getPositionGroup(p.role) || 'Unknown';
@@ -834,6 +850,7 @@ function renderTransfers() {
     html += renderList('Players For Sale', 'forSale');
     html += renderList('Players Sold', 'sold');
     html += renderList('Players Released', 'released');
+    html += renderList('Players Retired', 'retired');
     html += renderList('Players On Loan', 'loan');
     html += renderList('Players To Buy (Club)', 'toBuyClub');
     html += renderList('Players To Buy (Released)', 'toBuyReleased');
@@ -1041,6 +1058,7 @@ function renderPlayersTable(groupedPlayers) {
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.forSale}')" class="text-yellow-600" title="Mark For Sale">💰</button>
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.sold}')" class="text-green-700" title="Mark Sold">🏷️</button>
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.released}')" class="text-red-600" title="Release">🚫</button>
+                                ${player.age >= 32 ? `<button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.retired}')" class="text-pink-600" title="Retire">🏁</button>` : ''}
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.loan}')" class="text-indigo-600" title="Loan">🔁</button>
                             </div>
                         </td>
@@ -1094,6 +1112,7 @@ function renderPlayersCards(groupedPlayers) {
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.forSale}')" class="text-yellow-600 px-2" title="Mark For Sale">💰</button>
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.sold}')" class="text-green-700 px-2" title="Mark Sold">🏷️</button>
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.released}')" class="text-red-600 px-2" title="Release">🚫</button>
+                                ${player.age >= 32 ? `<button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.retired}')" class="text-pink-600 px-2" title="Retire">🏁</button>` : ''}
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.loan}')" class="text-indigo-600 px-2" title="Loan">🔁</button>
                             </div>
                         </div>
@@ -1419,7 +1438,7 @@ function saveSeason() {
                 youth_academy: { players: {} }
             }
         };
-    newSeason.transfers = { forSale: [], sold: [], released: [], loan: [], toBuyClub: [], toBuyReleased: [] };
+    newSeason.transfers = { forSale: [], sold: [], released: [], retired: [], loan: [], toBuyClub: [], toBuyReleased: [] };
         currentSeasons.push(newSeason);
         currentSeasonId = newSeason.id;
     }
@@ -1473,7 +1492,7 @@ function nextSeason() {
     const cloned = JSON.parse(JSON.stringify(season));
     // Assign new id and reset transfers
     cloned.id = generateId();
-    cloned.transfers = { forSale: [], sold: [], released: [], loan: [], toBuyClub: [], toBuyReleased: [] };
+    cloned.transfers = { forSale: [], sold: [], released: [], retired: [], loan: [], toBuyClub: [], toBuyReleased: [] };
 
     // Update players in both squads
     ['main_squad', 'youth_academy'].forEach(sq => {
