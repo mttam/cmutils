@@ -2625,6 +2625,8 @@ function renderCharts() {
     renderRoleChart(playersArray);
     // Position stat chart
     renderPositionStatChart(playersArray);
+    // Value by position donut chart
+    renderValueByPositionChart(playersArray);
 }
 
 /**
@@ -2785,6 +2787,165 @@ function renderRoleChart(players) {
             plugins: {
                 legend: {
                     position: 'right'
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Render donut chart showing total value (or count fallback) by position group.
+ * Uses GROUP_COLORS for slice colors so groups match other visuals.
+ */
+function renderValueByPositionChart(players) {
+    const ctxEl = document.getElementById('valueByPositionChart');
+    if (!ctxEl) return;
+    const ctx = ctxEl.getContext('2d');
+
+    // Destroy existing chart
+    if (charts.valueByPositionChart) charts.valueByPositionChart.destroy();
+
+    // Allow selecting which stat to display in the donut via #statSelect
+    const select = document.getElementById('statSelect');
+    const stat = select ? select.value : 'value';
+
+    // Aggregate various stats by position group so we can support sums/averages/counts/modes
+    const groupSums = {}; // stores sums for numeric fields
+    const groupCounts = {}; // player counts per group
+    const groupNationalityCounts = {};
+    const groupFootCounts = {};
+    const groupContractYearSums = {};
+    const groupContractCounts = {};
+
+    players.forEach(p => {
+        const grp = getPositionGroup(p.role) || 'Unknown';
+        if (!groupSums[grp]) {
+            groupSums[grp] = {
+                overall: 0, potential: 0, skills: 0, weakFoot: 0, totalStats: 0,
+                value: 0, wage: 0, appearances: 0, goals: 0, assists: 0,
+                cleanSheets: 0, yellowCards: 0, redCards: 0, avgRating: 0
+            };
+            groupCounts[grp] = 0;
+            groupNationalityCounts[grp] = {};
+            groupFootCounts[grp] = {};
+            groupContractYearSums[grp] = 0;
+            groupContractCounts[grp] = 0;
+        }
+
+        // accumulate numeric sums
+        groupSums[grp].overall += Number(p.overall) || 0;
+        groupSums[grp].potential += Number(p.potential) || 0;
+        groupSums[grp].skills += Number(p.skills) || 0;
+        groupSums[grp].weakFoot += Number(p.weakFoot) || 0;
+        groupSums[grp].totalStats += Number(p.totalStats) || 0;
+        groupSums[grp].value += Number(p.value) || 0;
+        groupSums[grp].wage += Number(p.wage) || 0;
+        groupSums[grp].appearances += Number(p.appearances) || 0;
+        groupSums[grp].goals += Number(p.goals) || 0;
+        groupSums[grp].assists += Number(p.assists) || 0;
+        groupSums[grp].cleanSheets += Number(p.cleanSheets) || 0;
+        groupSums[grp].yellowCards += Number(p.yellowCards) || 0;
+        groupSums[grp].redCards += Number(p.redCards) || 0;
+        groupSums[grp].avgRating += Number(p.avgRating) || 0;
+
+        // nationality counts
+        const nat = p.nationality || 'Unknown';
+        groupNationalityCounts[grp][nat] = (groupNationalityCounts[grp][nat] || 0) + 1;
+
+        // foot counts
+        const foot = p.foot || 'Unknown';
+        groupFootCounts[grp][foot] = (groupFootCounts[grp][foot] || 0) + 1;
+
+        // contract year sums for average contract end
+        if (p.contractEnd) {
+            const ts = Date.parse(p.contractEnd);
+            if (!isNaN(ts)) {
+                groupContractYearSums[grp] += new Date(ts).getFullYear();
+                groupContractCounts[grp] += 1;
+            }
+        }
+
+        groupCounts[grp] += 1;
+    });
+
+    // Build labels using POSITION_GROUPS order then extras
+    const labels = Object.keys(POSITION_GROUPS).filter(g => groupCounts[g]);
+    const extra = Object.keys(groupCounts).filter(k => !labels.includes(k)).sort();
+    labels.push(...extra);
+
+    // Decide how to compute value per group depending on selected stat
+    const numericAverageFields = new Set(['overall','potential','skills','weakFoot','avgRating','totalStats']);
+    const numericSumFields = new Set(['value','wage','appearances','goals','assists','cleanSheets','yellowCards','redCards']);
+
+    const data = labels.map(l => {
+        const count = groupCounts[l] || 0;
+        if (stat === 'nationality') {
+            // mode count of nationality for the group
+            const counts = groupNationalityCounts[l] || {};
+            let max = 0; Object.values(counts).forEach(v => { if (v > max) max = v; });
+            return max;
+        }
+        if (stat === 'foot') {
+            const counts = groupFootCounts[l] || {};
+            let max = 0; Object.values(counts).forEach(v => { if (v > max) max = v; });
+            return max;
+        }
+        if (stat === 'contractEnd') {
+            // average contract year
+            const cySum = groupContractYearSums[l] || 0;
+            const cyCount = groupContractCounts[l] || 0;
+            return cyCount > 0 ? Math.round(cySum / cyCount) : 0;
+        }
+
+        if (numericAverageFields.has(stat)) {
+            const sum = (groupSums[l] && groupSums[l][stat]) || 0;
+            return count > 0 ? +(sum / count).toFixed(2) : 0;
+        }
+
+        if (numericSumFields.has(stat)) {
+            return (groupSums[l] && groupSums[l][stat]) || 0;
+        }
+
+        // fallback to player counts per group
+        return count;
+    });
+
+    const bg = labels.map(l => (GROUP_COLORS[l] ? GROUP_COLORS[l].color : '#9CA3AF'));
+    const totalData = data.reduce((s, v) => s + (Number(v) || 0), 0);
+
+    charts.valueByPositionChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels,
+            datasets: [{
+                data,
+                backgroundColor: bg,
+                borderColor: '#ffffff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'right' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            // For currency-like stats show formatted number
+                            if (stat === 'value' || stat === 'wage') {
+                                return `${label}: ${formatNumber(value)}`;
+                            }
+                            if (numericAverageFields.has(stat)) {
+                                return `${label}: ${value}`;
+                            }
+                            if (totalData > 0) {
+                                return `${label}: ${formatNumber(value)}`;
+                            }
+                            return `${label}: ${value}`;
+                        }
+                    }
                 }
             }
         }
