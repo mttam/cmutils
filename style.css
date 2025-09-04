@@ -288,9 +288,51 @@
     color: #9ca3af !important; /* muted text */
 }
 
+.on-loan {
+    background-color: #afb8c8  !important; /* light gray */
+    color: #9ca3af !important; /* muted blue */
+}
+
+.players-table .on-loan td {
+    background-color: #afb8c8 !important;
+    color: #9ca3af !important;
+}
+
 .players-table .for-sale td {
     background-color: #f3f4f6 !important;
     color: #9ca3af !important;
+}
+
+/* On-loan badge only: small inline indicator (no row/card color change) */
+.on-loan-badge {
+    display: inline-block;
+    background: #6366f1;
+    color: #fff;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 9999px;
+    margin-left: 6px;
+}
+
+/* For Sale badge: small inline indicator (complements the row/card for-sale styling) */
+.for-sale-badge {
+    display: inline-block;
+    background: #f59e0b; /* amber */
+    color: #1f2937; /* dark gray text for contrast */
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 9999px;
+    margin-left: 6px;
+}
+
+/* Badge interaction affordance */
+.on-loan-badge, .for-sale-badge {
+    cursor: pointer;
+    transition: transform 120ms ease, opacity 120ms ease;
+}
+.on-loan-badge:hover, .for-sale-badge:hover {
+    transform: translateY(-1px);
+    opacity: 0.95;
 }
 
 /* Accent left border for headers in desktop table */

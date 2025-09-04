@@ -351,7 +351,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const TRANSFER_KEYS = {
         forSale: 'forSale',
         sold: 'sold',
-        released: 'released',
+    released: 'released',
+    loan: 'loan',
         toBuyClub: 'toBuyClub',
         toBuyReleased: 'toBuyReleased'
     };
@@ -647,7 +648,7 @@ function validateAndCleanSeasons(seasons) {
  */
 function getSeasonTransfers(season) {
     if (!season) return null;
-    if (!season.transfers) season.transfers = { forSale: [], sold: [], released: [], toBuyClub: [], toBuyReleased: [] };
+    if (!season.transfers) season.transfers = { forSale: [], sold: [], released: [], loan: [], toBuyClub: [], toBuyReleased: [] };
     return season.transfers;
 }
 
@@ -664,9 +665,34 @@ function addPlayerToTransferList(playerId, key) {
     const snapshot = Object.assign({}, player);
 
     if (key === TRANSFER_KEYS.sold || key === TRANSFER_KEYS.released) {
-        // remove from all squads
+        // remove from all squads for permanent changes (sold/released)
         delete season.roster.main_squad.players[playerId];
         delete season.roster.youth_academy.players[playerId];
+    }
+
+    // Toggle behavior for 'forSale' list: if already present, remove it (and update UI), otherwise add.
+    if (key === TRANSFER_KEYS.forSale) {
+        if (!Array.isArray(transfers.forSale)) transfers.forSale = [];
+        const exists = transfers.forSale.some(item => item.id && item.id.toString() === snapshot.id.toString());
+        if (exists) {
+            transfers.forSale = transfers.forSale.filter(item => !(item.id && item.id.toString() === snapshot.id.toString()));
+            saveToStorage();
+            renderPlayers();
+            renderTransfers();
+            return;
+        }
+    }
+    // Toggle behavior for 'loan' list: add if missing, remove if present
+    if (key === TRANSFER_KEYS.loan) {
+        if (!Array.isArray(transfers.loan)) transfers.loan = [];
+        const existsLoan = transfers.loan.some(item => item.id && item.id.toString() === snapshot.id.toString());
+        if (existsLoan) {
+            transfers.loan = transfers.loan.filter(item => !(item.id && item.id.toString() === snapshot.id.toString()));
+            saveToStorage();
+            renderPlayers();
+            renderTransfers();
+            return;
+        }
     }
 
     // prevent duplicate snapshot ids
@@ -808,6 +834,7 @@ function renderTransfers() {
     html += renderList('Players For Sale', 'forSale');
     html += renderList('Players Sold', 'sold');
     html += renderList('Players Released', 'released');
+    html += renderList('Players On Loan', 'loan');
     html += renderList('Players To Buy (Club)', 'toBuyClub');
     html += renderList('Players To Buy (Released)', 'toBuyReleased');
     html += '</div>';
@@ -890,7 +917,7 @@ function renderPlayers() {
     const container = document.getElementById('playersContainer');
     const players = getCurrentPlayers();
     const playersArray = Object.values(players);
-    
+
     if (playersArray.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
@@ -901,10 +928,10 @@ function renderPlayers() {
                 </button>
             </div>
         `;
-    // still render transfers section even if no players
-    renderTransfers();
-    try { renderSeasonStatsPanel(getCurrentSeason()); } catch (e) { /* no-op */ }
-    return;
+        // still render transfers section even if no players
+        renderTransfers();
+        try { renderSeasonStatsPanel(getCurrentSeason()); } catch (e) { /* no-op */ }
+        return;
     }
 
     // Group players by position
@@ -978,10 +1005,11 @@ function renderPlayersTable(groupedPlayers) {
             
             players.forEach(player => {
                 const isForSale = season && season.transfers && Array.isArray(season.transfers.forSale) && season.transfers.forSale.some(item => item.id && item.id.toString() === player.id.toString());
+                const isOnLoan = season && season.transfers && Array.isArray(season.transfers.loan) && season.transfers.loan.some(item => item.id && item.id.toString() === player.id.toString());
                 html += `
-                    <tr draggable="true" data-player-id="${player.id}" data-position-group="${groupName}" class="player-row ${groupClass} ${isForSale ? 'for-sale' : ''}">
+                    <tr draggable="true" data-player-id="${player.id}" data-position-group="${groupName}" class="player-row ${groupClass} ${isForSale ? 'for-sale' : ''}${isOnLoan ? ' on-loan' : ''}">
                         <td>
-                            <div class="font-medium">${player.firstName} ${player.lastName}</div>
+                            <div class="font-medium">${player.firstName} ${player.lastName} ${isOnLoan ? `<span class="on-loan-badge" onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.loan}')" title="Toggle Loan">Loan</span>` : ''} ${isForSale ? `<span class="for-sale-badge" onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.forSale}')" title="Toggle For Sale">For Sale</span>` : ''}</div>
                             <div class="text-sm text-gray-500">${player.nationality || 'Unknown'}</div>
                         </td>
                         <td><span class="font-mono text-sm">${player.role}</span></td>
@@ -1013,6 +1041,7 @@ function renderPlayersTable(groupedPlayers) {
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.forSale}')" class="text-yellow-600" title="Mark For Sale">💰</button>
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.sold}')" class="text-green-700" title="Mark Sold">🏷️</button>
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.released}')" class="text-red-600" title="Release">🚫</button>
+                                <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.loan}')" class="text-indigo-600" title="Loan">🔁</button>
                             </div>
                         </td>
                     </tr>
@@ -1042,11 +1071,12 @@ function renderPlayersCards(groupedPlayers) {
             
             players.forEach(player => {
                 const isForSale = season && season.transfers && Array.isArray(season.transfers.forSale) && season.transfers.forSale.some(item => item.id && item.id.toString() === player.id.toString());
+                const isOnLoan = season && season.transfers && Array.isArray(season.transfers.loan) && season.transfers.loan.some(item => item.id && item.id.toString() === player.id.toString());
                 html += `
-                    <div class="player-card ${groupClass} ${isForSale ? 'for-sale' : ''}" draggable="true" data-player-id="${player.id}" data-position-group="${groupName}">
+                    <div class="player-card ${groupClass} ${isForSale ? 'for-sale' : ''}${isOnLoan ? ' on-loan' : ''}" draggable="true" data-player-id="${player.id}" data-position-group="${groupName}">
                         <div class="flex justify-between items-start mb-2">
                             <div>
-                                <div class="font-semibold">${player.firstName} ${player.lastName}</div>
+                                <div class="font-semibold">${player.firstName} ${player.lastName} ${isOnLoan ? `<span class="on-loan-badge" onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.loan}')" title="Toggle Loan">Loan</span>` : ''} ${isForSale ? `<span class="for-sale-badge" onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.forSale}')" title="Toggle For Sale">For Sale</span>` : ''}</div>
                                 <div class="text-sm text-gray-500">${player.nationality || 'Unknown'} • ${player.role}</div>
                             </div>
                             <div class="flex space-x-1 items-center">
@@ -1064,6 +1094,7 @@ function renderPlayersCards(groupedPlayers) {
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.forSale}')" class="text-yellow-600 px-2" title="Mark For Sale">💰</button>
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.sold}')" class="text-green-700 px-2" title="Mark Sold">🏷️</button>
                                 <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.released}')" class="text-red-600 px-2" title="Release">🚫</button>
+                                <button onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.loan}')" class="text-indigo-600 px-2" title="Loan">🔁</button>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-2 text-sm">
@@ -1388,7 +1419,7 @@ function saveSeason() {
                 youth_academy: { players: {} }
             }
         };
-    newSeason.transfers = { forSale: [], sold: [], released: [], toBuyClub: [], toBuyReleased: [] };
+    newSeason.transfers = { forSale: [], sold: [], released: [], loan: [], toBuyClub: [], toBuyReleased: [] };
         currentSeasons.push(newSeason);
         currentSeasonId = newSeason.id;
     }
@@ -1442,7 +1473,7 @@ function nextSeason() {
     const cloned = JSON.parse(JSON.stringify(season));
     // Assign new id and reset transfers
     cloned.id = generateId();
-    cloned.transfers = { forSale: [], sold: [], released: [], toBuyClub: [], toBuyReleased: [] };
+    cloned.transfers = { forSale: [], sold: [], released: [], loan: [], toBuyClub: [], toBuyReleased: [] };
 
     // Update players in both squads
     ['main_squad', 'youth_academy'].forEach(sq => {
