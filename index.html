@@ -114,6 +114,7 @@
                     <canvas id="ageChart" width="400" height="200"></canvas>
                     <h4 class="font-medium mb-2">Number Player by Role</h4>
                     <canvas id="roleChart" width="400" height="200" class="hidden"></canvas>
+                    
                 </div>
 
                 
@@ -143,8 +144,22 @@
                         </select>
                     </div>
                     <canvas id="positionStatChart" width="400" height="200"></canvas>
-                    <h4 class="font-medium mt-4 mb-2">Total Value by Position</h4>
-                    <canvas id="valueByPositionChart" width="400" height="200"></canvas>
+                    <h4 class="font-medium mt-4 mb-2">General Distribution</h4>
+                    <div class="flex items-center gap-2 mb-2">
+                        <label for="generalStatSelect" class="text-sm">Show distribution:</label>
+                        <select id="generalStatSelect" class="border border-gray-300 rounded px-2 py-1 text-sm">
+                            <option value="nationality">Nationality</option>
+                            <option value="role">Role</option>
+                            <option value="foot">Preferred Foot</option>
+                            <option value="contractEnd">Contract Year</option>
+                            <option value="overall">Overall (rating)</option>
+                            <option value="potential">Potential (rating)</option>
+                            <option value="skills">Skills (1-5)</option>
+                            <option value="weakFoot">Weak Foot (1-5)</option>
+                        </select>
+                    </div>
+                    <canvas id="generalDonutChart" width="400" height="200"></canvas>
+                    <!-- Total Value by Position chart removed -->
                 </div>
             </div>
         </section>

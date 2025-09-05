@@ -939,6 +939,14 @@ function setupEventListeners() {
             }
         });
     }
+    const generalStatSelect = document.getElementById('generalStatSelect');
+    if (generalStatSelect) {
+        generalStatSelect.addEventListener('change', () => {
+            if (document.getElementById('chartsPanel') && !document.getElementById('chartsPanel').classList.contains('hidden')) {
+                renderCharts();
+            }
+        });
+    }
 
     // Import/Export
     document.getElementById('exportBtn').addEventListener('click', exportData);
@@ -2625,8 +2633,8 @@ function renderCharts() {
     renderRoleChart(playersArray);
     // Position stat chart
     renderPositionStatChart(playersArray);
-    // Value by position donut chart
-    renderValueByPositionChart(playersArray);
+    // General categorical distribution donut (nationality, role, foot, contract year)
+    renderGeneralDonutChart(playersArray);
 }
 
 /**
@@ -2797,123 +2805,85 @@ function renderRoleChart(players) {
  * Render donut chart showing total value (or count fallback) by position group.
  * Uses GROUP_COLORS for slice colors so groups match other visuals.
  */
-function renderValueByPositionChart(players) {
-    const ctxEl = document.getElementById('valueByPositionChart');
+
+/**
+ * Render a general donut chart for categorical distributions (nationality, role, foot, contract year)
+ */
+function renderGeneralDonutChart(players) {
+    const select = document.getElementById('generalStatSelect');
+    const stat = select ? select.value : 'nationality';
+    const ctxEl = document.getElementById('generalDonutChart');
     if (!ctxEl) return;
     const ctx = ctxEl.getContext('2d');
 
-    // Destroy existing chart
-    if (charts.valueByPositionChart) charts.valueByPositionChart.destroy();
+    // destroy existing chart
+    if (charts.generalDonutChart) charts.generalDonutChart.destroy();
 
-    // Allow selecting which stat to display in the donut via #statSelect
-    const select = document.getElementById('statSelect');
-    const stat = select ? select.value : 'value';
-
-    // Aggregate various stats by position group so we can support sums/averages/counts/modes
-    const groupSums = {}; // stores sums for numeric fields
-    const groupCounts = {}; // player counts per group
-    const groupNationalityCounts = {};
-    const groupFootCounts = {};
-    const groupContractYearSums = {};
-    const groupContractCounts = {};
+    // build counts
+    const counts = {};
+    const inc = k => { counts[k] = (counts[k] || 0) + 1; };
 
     players.forEach(p => {
-        const grp = getPositionGroup(p.role) || 'Unknown';
-        if (!groupSums[grp]) {
-            groupSums[grp] = {
-                overall: 0, potential: 0, skills: 0, weakFoot: 0, totalStats: 0,
-                value: 0, wage: 0, appearances: 0, goals: 0, assists: 0,
-                cleanSheets: 0, yellowCards: 0, redCards: 0, avgRating: 0
-            };
-            groupCounts[grp] = 0;
-            groupNationalityCounts[grp] = {};
-            groupFootCounts[grp] = {};
-            groupContractYearSums[grp] = 0;
-            groupContractCounts[grp] = 0;
-        }
-
-        // accumulate numeric sums
-        groupSums[grp].overall += Number(p.overall) || 0;
-        groupSums[grp].potential += Number(p.potential) || 0;
-        groupSums[grp].skills += Number(p.skills) || 0;
-        groupSums[grp].weakFoot += Number(p.weakFoot) || 0;
-        groupSums[grp].totalStats += Number(p.totalStats) || 0;
-        groupSums[grp].value += Number(p.value) || 0;
-        groupSums[grp].wage += Number(p.wage) || 0;
-        groupSums[grp].appearances += Number(p.appearances) || 0;
-        groupSums[grp].goals += Number(p.goals) || 0;
-        groupSums[grp].assists += Number(p.assists) || 0;
-        groupSums[grp].cleanSheets += Number(p.cleanSheets) || 0;
-        groupSums[grp].yellowCards += Number(p.yellowCards) || 0;
-        groupSums[grp].redCards += Number(p.redCards) || 0;
-        groupSums[grp].avgRating += Number(p.avgRating) || 0;
-
-        // nationality counts
-        const nat = p.nationality || 'Unknown';
-        groupNationalityCounts[grp][nat] = (groupNationalityCounts[grp][nat] || 0) + 1;
-
-        // foot counts
-        const foot = p.foot || 'Unknown';
-        groupFootCounts[grp][foot] = (groupFootCounts[grp][foot] || 0) + 1;
-
-        // contract year sums for average contract end
-        if (p.contractEnd) {
-            const ts = Date.parse(p.contractEnd);
-            if (!isNaN(ts)) {
-                groupContractYearSums[grp] += new Date(ts).getFullYear();
-                groupContractCounts[grp] += 1;
-            }
-        }
-
-        groupCounts[grp] += 1;
-    });
-
-    // Build labels using POSITION_GROUPS order then extras
-    const labels = Object.keys(POSITION_GROUPS).filter(g => groupCounts[g]);
-    const extra = Object.keys(groupCounts).filter(k => !labels.includes(k)).sort();
-    labels.push(...extra);
-
-    // Decide how to compute value per group depending on selected stat
-    const numericAverageFields = new Set(['overall','potential','skills','weakFoot','avgRating','totalStats']);
-    const numericSumFields = new Set(['value','wage','appearances','goals','assists','cleanSheets','yellowCards','redCards']);
-
-    const data = labels.map(l => {
-        const count = groupCounts[l] || 0;
-        if (stat === 'nationality') {
-            // mode count of nationality for the group
-            const counts = groupNationalityCounts[l] || {};
-            let max = 0; Object.values(counts).forEach(v => { if (v > max) max = v; });
-            return max;
-        }
-        if (stat === 'foot') {
-            const counts = groupFootCounts[l] || {};
-            let max = 0; Object.values(counts).forEach(v => { if (v > max) max = v; });
-            return max;
-        }
+        // categorical
+        if (stat === 'nationality') { inc(p.nationality || 'Unknown'); return; }
+        if (stat === 'role') { inc(p.role || 'Unknown'); return; }
+        if (stat === 'foot') { inc(p.foot || 'Unknown'); return; }
         if (stat === 'contractEnd') {
-            // average contract year
-            const cySum = groupContractYearSums[l] || 0;
-            const cyCount = groupContractCounts[l] || 0;
-            return cyCount > 0 ? Math.round(cySum / cyCount) : 0;
+            if (p.contractEnd) {
+                const t = Date.parse(p.contractEnd);
+                inc(isNaN(t) ? 'Unknown' : String(new Date(t).getFullYear()));
+            } else inc('Unknown');
+            return;
         }
 
-        if (numericAverageFields.has(stat)) {
-            const sum = (groupSums[l] && groupSums[l][stat]) || 0;
-            return count > 0 ? +(sum / count).toFixed(2) : 0;
+        // numeric: show every single value for overall/potential (e.g. 80,85,90)
+        if (stat === 'overall' || stat === 'potential') {
+            const val = parseInt(p[stat]);
+            if (!val || isNaN(val) || val <= 0) { inc('Unknown'); return; }
+            inc(String(val));
+            return;
         }
 
-        if (numericSumFields.has(stat)) {
-            return (groupSums[l] && groupSums[l][stat]) || 0;
+        // skills and weakFoot: treat as exact counts (1-5)
+        if (stat === 'skills' || stat === 'weakFoot') {
+            const v = p[stat];
+            if (v === null || v === undefined || v === '') { inc('Unknown'); return; }
+            inc(String(v));
+            return;
         }
 
-        // fallback to player counts per group
-        return count;
+        // fallback
+        inc('Unknown');
     });
 
-    const bg = labels.map(l => (GROUP_COLORS[l] ? GROUP_COLORS[l].color : '#9CA3AF'));
-    const totalData = data.reduce((s, v) => s + (Number(v) || 0), 0);
+    // sort keys by count desc
+    const entries = Object.entries(counts).sort((a,b) => b[1] - a[1]);
+    // show top 10 and group rest into 'Other'
+    const topN = 10;
+    const labels = [];
+    const data = [];
+    let otherSum = 0;
+    entries.forEach((e, idx) => {
+        if (idx < topN) {
+            labels.push(e[0]);
+            data.push(e[1]);
+        } else {
+            otherSum += e[1];
+        }
+    });
+    if (otherSum > 0) { labels.push('Other'); data.push(otherSum); }
 
-    charts.valueByPositionChart = new Chart(ctx, {
+    // build colors (reuse GROUP_COLORS when possible, otherwise generate palette)
+    const palette = ['#4F46E5','#10B981','#F59E0B','#EF4444','#3B82F6','#8B5CF6','#06B6D4','#F97316','#14B8A6','#6366F1','#9CA3AF'];
+    const bg = labels.map((lbl, i) => {
+        // try match group color by label (if label matches a POSITION_GROUP name)
+        if (GROUP_COLORS[lbl]) return GROUP_COLORS[lbl].color;
+        // try to map common values
+        if (/^Unknown$/i.test(lbl)) return '#9CA3AF';
+        return palette[i % palette.length];
+    });
+
+    charts.generalDonutChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels,
@@ -2929,22 +2899,91 @@ function renderValueByPositionChart(players) {
             plugins: {
                 legend: { position: 'right' },
                 tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const label = context.label || '';
-                            const value = context.parsed || 0;
-                            // For currency-like stats show formatted number
-                            if (stat === 'value' || stat === 'wage') {
-                                return `${label}: ${formatNumber(value)}`;
-                            }
-                            if (numericAverageFields.has(stat)) {
-                                return `${label}: ${value}`;
-                            }
-                            if (totalData > 0) {
-                                return `${label}: ${formatNumber(value)}`;
-                            }
-                            return `${label}: ${value}`;
+                    // Disable built-in tooltip when showing nationality so only the custom tooltip appears.
+                    // For other stats keep the normal built-in Chart.js tooltip enabled.
+                    enabled: (stat !== 'nationality'),
+                    external: function(context) {
+                        // Only show the rich custom tooltip for nationality stat
+                        if (stat !== 'nationality') {
+                            // If a custom tooltip element exists from a previous hover, hide it
+                            const existing = document.getElementById('chartjs-tooltip-general');
+                            if (existing) existing.style.opacity = 0;
+                            return;
                         }
+
+                        const tooltipModel = context.tooltip;
+                        let tooltipEl = document.getElementById('chartjs-tooltip-general');
+
+                        // Create tooltip element if not present
+                        if (!tooltipEl) {
+                            tooltipEl = document.createElement('div');
+                            tooltipEl.id = 'chartjs-tooltip-general';
+                            tooltipEl.style.position = 'absolute';
+                            tooltipEl.style.zIndex = 9999;
+                            tooltipEl.style.pointerEvents = 'none';
+                            tooltipEl.style.transition = 'opacity 0.08s ease';
+                            document.body.appendChild(tooltipEl);
+                        }
+
+                        // Hide if no tooltip
+                        if (tooltipModel.opacity === 0) {
+                            tooltipEl.style.opacity = 0;
+                            return;
+                        }
+
+                        // Use first dataPoint if present
+                        const dp = (tooltipModel.dataPoints && tooltipModel.dataPoints[0]) || null;
+                        if (!dp) { tooltipEl.style.opacity = 0; return; }
+
+                        const label = dp.label || 'Unknown';
+                        const value = Number(dp.parsed || dp.raw || dp.formattedValue || 0);
+
+                        // Compute total for percent
+                        const chart = context.chart;
+                        const dataset = (chart.data && chart.data.datasets && chart.data.datasets[0]) || null;
+                        const total = dataset ? dataset.data.reduce((s, v) => s + Number(v || 0), 0) : 0;
+                        const percent = total ? Math.round((value / total) * 100) : 0;
+
+                        // Resolve country mapping to get display name and flag filename
+                        let mapping = COUNTRY_MAP[label] || COUNTRY_MAP[label.toUpperCase()];
+                        // If not found by code, try matching by English name (case-insensitive)
+                        if (!mapping) {
+                            const byName = Object.values(COUNTRY_MAP).find(c => (c.name || '').toLowerCase() === String(label || '').toLowerCase());
+                            if (byName) mapping = byName;
+                        }
+
+                        let displayName = label;
+                        let flagFile = label;
+                        if (mapping) {
+                            displayName = mapping.name || label;
+                            flagFile = mapping.flag || label;
+                        } else {
+                            // fallback heuristics: 3-letter codes -> first 2 letters; 2-letter codes use directly
+                            const L = (label || '').toString();
+                            if (L.length === 3) flagFile = L.substring(0,2).toUpperCase();
+                            else if (L.length === 2) flagFile = L.toUpperCase();
+                        }
+
+                        const imgSrc = `flags/${flagFile}.svg`;
+
+                        // Build HTML
+                        tooltipEl.innerHTML = `
+                            <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(255,255,255,0.98);border:1px solid rgba(0,0,0,0.08);box-shadow:0 4px 12px rgba(0,0,0,0.12);border-radius:6px;font-family:inherit;font-size:13px;color:#111">
+                                <img src="${imgSrc}" alt="${escapeHtml(displayName)}" style="width:22px;height:14px;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'" />
+                                <div style="line-height:1">
+                                    <div style="font-weight:600">${escapeHtml(displayName)}</div>
+                                    <div style="font-size:12px;color:#555">${value} (${percent}%)</div>
+                                </div>
+                            </div>
+                        `;
+
+                        // Position tooltip near the caret
+                        const canvasRect = chart.canvas.getBoundingClientRect();
+                        const left = canvasRect.left + window.pageXOffset + (tooltipModel.caretX || 0);
+                        const top = canvasRect.top + window.pageYOffset + (tooltipModel.caretY || 0);
+                        tooltipEl.style.left = (left + 12) + 'px';
+                        tooltipEl.style.top = (top + 12) + 'px';
+                        tooltipEl.style.opacity = 1;
                     }
                 }
             }
