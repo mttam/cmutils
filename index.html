@@ -62,6 +62,9 @@
         <section class="mb-8">
             <div class="border-b border-gray-300">
                 <nav class="-mb-px flex space-x-8">
+                    <button id="notesTab" class="squad-tab border-b-2 border-transparent py-2 px-1 text-sm font-medium text-gray-500 hover:text-black hover:border-gray-300">
+                        Notes
+                    </button>
                     <button id="mainSquadTab" class="squad-tab active border-b-2 border-black py-2 px-1 text-sm font-medium text-black">
                         Main Squad
                     </button>
@@ -99,6 +102,18 @@
             <!-- Players Table/Cards Container -->
             <div id="playersContainer">
                 <!-- Players will be populated here -->
+            </div>
+            <!-- Notes Container (hidden by default, styled like squads) -->
+            <div id="notesContainer" class="hidden mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">🗒️</h3>
+                    <div class="flex items-center gap-2">
+                        <button id="addNoteBtn" class="bg-black text-white px-3 py-2 rounded hover:bg-gray-800 text-sm">Add Note</button>
+                    </div>
+                </div>
+                <div id="notesList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Note cards injected here -->
+                </div>
             </div>
         </section>
 
@@ -571,6 +586,31 @@
         </div>
     </div>
 
+            <!-- Note Modal -->
+            <div id="noteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+                <div class="flex items-center justify-center min-h-screen p-4">
+                    <div class="bg-white p-6 rounded-lg w-full max-w-lg max-h-96 overflow-y-auto">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 id="noteModalTitle" class="text-lg font-semibold">Add Note</h3>
+                            <button id="closeNoteModalBtn" class="text-gray-600 hover:text-black">✕</button>
+                        </div>
+                        <form id="noteForm" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Title</label>
+                                <input type="text" id="noteTitle" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Content</label>
+                                <textarea id="noteContent" rows="6" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black" placeholder="Write your note here..."></textarea>
+                            </div>
+                        </form>
+                        <div class="flex justify-end space-x-2 mt-6">
+                            <button id="cancelNoteBtn" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50">Cancel</button>
+                            <button id="saveNoteBtn" class="px-4 py-2 bg-black text-white rounded hover:bg-gray-800">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
     <script src="script.js"></script>
 </body>
 </html>

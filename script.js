@@ -885,6 +885,8 @@ function setupEventListeners() {
     document.getElementById('closeSeasonModalBtn').addEventListener('click', closeSeasonModal);
 
     // Squad tabs
+    const notesTab = document.getElementById('notesTab');
+    if (notesTab) notesTab.addEventListener('click', () => switchToNotes());
     document.getElementById('mainSquadTab').addEventListener('click', () => switchSquad('main_squad'));
     document.getElementById('youthAcademyTab').addEventListener('click', () => switchSquad('youth_academy'));
 
@@ -967,6 +969,19 @@ function setupEventListeners() {
     });
     document.getElementById('storageModal').addEventListener('click', (e) => {
         if (e.target.id === 'storageModal') closeStorageModal();
+    });
+
+    // Notes UI
+    const addNoteBtn = document.getElementById('addNoteBtn');
+    if (addNoteBtn) addNoteBtn.addEventListener('click', () => openNoteModal());
+    const closeNoteModalBtn = document.getElementById('closeNoteModalBtn');
+    if (closeNoteModalBtn) closeNoteModalBtn.addEventListener('click', closeNoteModal);
+    const cancelNoteBtn = document.getElementById('cancelNoteBtn');
+    if (cancelNoteBtn) cancelNoteBtn.addEventListener('click', closeNoteModal);
+    const saveNoteBtn = document.getElementById('saveNoteBtn');
+    if (saveNoteBtn) saveNoteBtn.addEventListener('click', saveNote);
+    document.getElementById('noteModal') && document.getElementById('noteModal').addEventListener('click', (e) => {
+        if (e.target.id === 'noteModal') closeNoteModal();
     });
 }
 
@@ -1131,6 +1146,8 @@ function validateAndCleanSeasons(seasons) {
                 toBuyReleased: []
             };
         }
+    // Ensure notes structure exists
+    if (!season.notes) season.notes = [];
         
         // Validate and clean players
         ['main_squad', 'youth_academy'].forEach(squadType => {
@@ -1169,6 +1186,158 @@ function validateAndCleanSeasons(seasons) {
         return season;
     });
 }
+
+/**
+ * Notes management
+ */
+function getSeasonNotes() {
+    const season = getCurrentSeason();
+    if (!season) return [];
+    if (!Array.isArray(season.notes)) season.notes = [];
+    return season.notes;
+}
+
+function renderNotes() {
+    const notesContainer = document.getElementById('notesContainer');
+    const notesList = document.getElementById('notesList');
+    if (!notesContainer || !notesList) return;
+
+    const notes = getSeasonNotes();
+
+    if (notes.length === 0) {
+        notesList.innerHTML = `<div class="empty-state"><h3>No notes yet</h3><p>Create a new note to get started.</p></div>`;
+        return;
+    }
+
+    const html = notes.map(n => {
+        const title = n.title || 'Untitled';
+        const content = (n.content || '').replace(/\n/g, '<br>');
+        return `
+            <div class="note-card p-4" data-note-id="${n.id}">
+                <div class="flex justify-between items-start mb-2">
+                    <div class="font-semibold">${escapeHtml(title)}</div>
+                    <div class="space-x-2">
+                        <button onclick="editNote('${n.id}')" class="text-blue-600 text-sm">✏️</button>
+                        <button onclick="deleteNote('${n.id}')" class="text-red-600 text-sm">🗑️</button>
+                    </div>
+                </div>
+                <div class="text-sm text-gray-700 note-content">${content}</div>
+            </div>
+        `;
+    }).join('');
+
+    notesList.innerHTML = html;
+}
+
+let editingNoteId = null;
+
+function openNoteModal(note = null) {
+    const modal = document.getElementById('noteModal');
+    const titleEl = document.getElementById('noteModalTitle');
+    const titleInput = document.getElementById('noteTitle');
+    const contentInput = document.getElementById('noteContent');
+
+    if (note) {
+        editingNoteId = note.id;
+        titleEl.textContent = 'Edit Note';
+        titleInput.value = note.title || '';
+        contentInput.value = note.content || '';
+    } else {
+        editingNoteId = null;
+        titleEl.textContent = 'Add Note';
+        titleInput.value = '';
+        contentInput.value = '';
+    }
+
+    modal.classList.remove('hidden');
+    setTimeout(() => titleInput.focus(), 50);
+}
+
+function closeNoteModal() {
+    const modal = document.getElementById('noteModal');
+    modal.classList.add('hidden');
+    editingNoteId = null;
+}
+
+function saveNote() {
+    const titleInput = document.getElementById('noteTitle');
+    const contentInput = document.getElementById('noteContent');
+    const season = getCurrentSeason();
+    if (!season) return;
+
+    const notes = getSeasonNotes();
+
+    if (editingNoteId) {
+        const note = notes.find(n => n.id === editingNoteId);
+        if (note) {
+            note.title = titleInput.value.trim();
+            note.content = contentInput.value.trim();
+            note.updatedAt = new Date().toISOString();
+        }
+    } else {
+        const newNote = {
+            id: generateId(),
+            title: titleInput.value.trim(),
+            content: contentInput.value.trim(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        notes.unshift(newNote);
+    }
+
+    season.notes = notes;
+    saveToStorage();
+    renderNotes();
+    closeNoteModal();
+}
+
+function editNote(noteId) {
+    const notes = getSeasonNotes();
+    const note = notes.find(n => n.id === noteId);
+    if (!note) return alert('Note not found');
+    openNoteModal(note);
+}
+
+function deleteNote(noteId) {
+    if (!confirm('Delete this note?')) return;
+    const season = getCurrentSeason();
+    if (!season) return;
+    season.notes = (season.notes || []).filter(n => n.id !== noteId);
+    saveToStorage();
+    renderNotes();
+}
+
+function switchToNotes() {
+    // update tab classes
+    document.querySelectorAll('.squad-tab').forEach(tab => {
+        tab.classList.remove('active');
+        tab.classList.add('border-transparent', 'text-gray-500');
+        tab.classList.remove('border-black', 'text-black');
+    });
+    const notesTab = document.getElementById('notesTab');
+    notesTab.classList.add('active', 'border-black', 'text-black');
+    notesTab.classList.remove('border-transparent', 'text-gray-500');
+
+    // show notes, hide players
+    document.getElementById('playersContainer').classList.add('hidden');
+    document.getElementById('notesContainer').classList.remove('hidden');
+    document.getElementById('squadTitle').textContent = 'Your Notes';
+    renderNotes();
+}
+
+// When switching squad, ensure notes panel is hidden
+const _origSwitchSquad = switchSquad;
+switchSquad = function(squad) {
+    _origSwitchSquad && _origSwitchSquad(squad);
+    // hide notes UI when switching back to squads
+    const notesContainer = document.getElementById('notesContainer');
+    if (notesContainer) notesContainer.classList.add('hidden');
+    const playersContainer = document.getElementById('playersContainer');
+    if (playersContainer) playersContainer.classList.remove('hidden');
+    // ensure Notes tab not active
+    const notesTab = document.getElementById('notesTab');
+    if (notesTab) notesTab.classList.remove('active');
+};
 
 /**
  * Transfer helper functions

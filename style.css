@@ -227,6 +227,30 @@
     color: #6b7280;
 }
 
+/* Note card styling (looks like sticky notes) */
+.note-card {
+    background: linear-gradient(180deg, #fffef0, #fff7d6); /* subtle paper/yellow tint */
+    border: 1px solid #f3e7a9;
+    border-radius: 8px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.06);
+    padding: 12px;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+}
+.note-card .note-content {
+    white-space: pre-wrap;
+    color: #111827;
+    flex: 1;
+}
+
+/* Notes layout on small screens */
+@media (max-width: 640px) {
+    #notesList {
+        grid-template-columns: 1fr !important;
+    }
+}
+
 .empty-state h3 {
     font-size: 18px;
     font-weight: 600;
