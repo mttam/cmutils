@@ -1018,6 +1018,9 @@ async function initializeApp() {
     renderSeasonTabs();
     renderPlayers();
     renderTransfers();
+    // Ensure notes are rendered after app initialization (so Notes tab works even
+    // if clicked before squads were interacted with)
+    try { renderNotes(); } catch (e) { /* ignore if notes UI missing during init */ }
 }
 
 /**
