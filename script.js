@@ -1018,9 +1018,7 @@ async function initializeApp() {
     renderSeasonTabs();
     renderPlayers();
     renderTransfers();
-    // Ensure notes are rendered after app initialization (so Notes tab works even
-    // if clicked before squads were interacted with)
-    try { renderNotes(); } catch (e) { /* ignore if notes UI missing during init */ }
+    renderNotes();
 }
 
 /**
@@ -1595,6 +1593,14 @@ function switchSeason(seasonId) {
     currentSeasonId = seasonId;
     renderSeasonTabs();
     renderPlayers();
+    // If the notes panel is open, refresh notes so they reflect the newly selected season
+    try {
+        const notesContainer = document.getElementById('notesContainer');
+        if (notesContainer && !notesContainer.classList.contains('hidden')) {
+            renderNotes();
+        }
+    } catch (e) { /* ignore DOM errors */ }
+
     hideCharts();
 }
 
