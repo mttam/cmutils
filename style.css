@@ -415,6 +415,34 @@
     opacity: 0.95;
 }
 
+/* Yellow/Red card badges displayed in player table/cards */
+.card-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box; /* ensure border included in size */
+    font-size: 12px;
+    padding: 0 8px; /* symmetric horizontal padding */
+    height: 28px; /* fixed height for even borders */
+    min-width: 28px; /* keep circular-ish when single digit */
+    border-radius: 9999px;
+    font-weight: 600;
+    color: #111827;
+    margin-right: 8px;
+    border: 1px solid transparent; /* color overridden by .badge-Y/.badge-R */
+    line-height: 1; /* avoid extra vertical spacing */
+}
+.badge-Y {
+    background: #FEF3C7; /* light yellow */
+    border: 1px solid #FBBF24; /* yellow */
+    color: #7A5A00;
+}
+.badge-R {
+    background: #FEE2E2; /* light red */
+    border: 1px solid #EF4444; /* red */
+    color: #7F1D1D;
+}
+
 /* Accent left border for headers in desktop table */
 .players-table .position-group-row.group-goalkeepers .position-group-header {
     border-left: 6px solid #FBBF24;

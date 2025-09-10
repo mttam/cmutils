@@ -1018,7 +1018,6 @@ async function initializeApp() {
     renderSeasonTabs();
     renderPlayers();
     renderTransfers();
-    renderNotes();
 }
 
 /**
@@ -1593,14 +1592,6 @@ function switchSeason(seasonId) {
     currentSeasonId = seasonId;
     renderSeasonTabs();
     renderPlayers();
-    // If the notes panel is open, refresh notes so they reflect the newly selected season
-    try {
-        const notesContainer = document.getElementById('notesContainer');
-        if (notesContainer && !notesContainer.classList.contains('hidden')) {
-            renderNotes();
-        }
-    } catch (e) { /* ignore DOM errors */ }
-
     hideCharts();
 }
 
@@ -1700,8 +1691,10 @@ function renderPlayersTable(groupedPlayers) {
                     <th>App</th>
                     <th>Goals</th>
                     <th>Assists</th>
-                    <th>Clean Sheets</th>
-                    <th>Rating</th>
+                        <th>Clean Sheets</th>
+                        <th>Yellow Cards</th>
+                        <th>Red Cards</th>
+                        <th>Rating</th>
                     <th>Skills</th>
                     <th>Weak Foot</th>
                     <th>Foot</th>
@@ -1719,7 +1712,7 @@ function renderPlayersTable(groupedPlayers) {
             const groupClass = 'group-' + groupName.toLowerCase().replace(/\s+/g, '-');
             html += `
                 <tr class="position-group-row ${groupClass}">
-                    <td colspan="17" class="position-group-header">${groupName}</td>
+                    <td colspan="19" class="position-group-header">${groupName}</td>
                 </tr>
             `;
             
@@ -1740,6 +1733,8 @@ function renderPlayersTable(groupedPlayers) {
                         <td>${player.goals || 0}</td>
                         <td>${player.assists || 0}</td>
                         <td>${player.cleanSheets || 0}</td>
+                        <td>${player.yellowCards || 0}</td>
+                        <td>${player.redCards || 0}</td>
                         <td>${player.avgRating || '-'}</td>
                         <td>${renderStars(player.skills)}</td>
                         <td>${renderStars(player.weakFoot)}</td>
@@ -1832,6 +1827,10 @@ function renderPlayersCards(groupedPlayers) {
                         </div>
                         <div class="mt-2 pt-2 border-t text-xs text-gray-600">
                             Apps: ${player.appearances || 0} | Goals: ${player.goals || 0} | Assists: ${player.assists || 0} | Rating: ${player.avgRating || '-'}
+                            <div class="mt-1">
+                                <span class="card-badge badge-Y" title="Yellow Cards">${player.yellowCards || 0}</span>
+                                <span class="card-badge badge-R" title="Red Cards">${player.redCards || 0}</span>
+                            </div>
                         </div>
                     </div>
                 `;
