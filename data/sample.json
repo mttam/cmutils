@@ -174,8 +174,24 @@
       "playerAwards": [
         { "playerId": null, "awardName": "Golden Boot", "note": "Top scorer" },
         { "playerId": null, "awardName": "Player of the Season" }
-      ],
-  "transfers": { "forSale": [], "sold": [], "released": [], "retired": [], "loan": [], "toBuyClub": [], "toBuyReleased": [] }
+        ],
+      "notes": [
+          {
+            "id": "n_k9xq3z8",
+            "title": "Pre-season targets",
+            "content": "Sign a left-footed CB and reduce wage costs.",
+            "createdAt": "2025-09-08T12:34:56.000Z",
+            "updatedAt": "2025-09-08T12:34:56.000Z"
+          },
+          {
+            "id": "n_b4v2x1",
+            "title": "Tactical note",
+            "content": "Use 4-3-3 in home games; shift to 4-2-3-1 away.",
+            "createdAt": "2025-09-08T13:05:00.000Z",
+            "updatedAt": "2025-09-08T13:05:00.000Z"
+          }
+        ],
+        "transfers": { "forSale": [], "sold": [], "released": [], "retired": [], "loan": [], "toBuyClub": [], "toBuyReleased": [] }
     },
     {
       "id": null,
@@ -265,8 +281,16 @@
             }
           }
         }
-        
-      }
+      },
+      "notes": [
+        {
+          "id": "n_m2p9t7",
+          "title": "Youth watchlist",
+          "content": "Track Marco Rossi's development; consider a loan next season to increase minutes.",
+          "createdAt": "2025-09-08T14:00:00.000Z",
+          "updatedAt": "2025-09-08T14:00:00.000Z"
+        }
+      ]
     }
   ]
 }

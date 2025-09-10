@@ -1018,6 +1018,7 @@ async function initializeApp() {
     renderSeasonTabs();
     renderPlayers();
     renderTransfers();
+    renderNotes();
 }
 
 /**
@@ -1592,6 +1593,14 @@ function switchSeason(seasonId) {
     currentSeasonId = seasonId;
     renderSeasonTabs();
     renderPlayers();
+    // If the notes panel is open, refresh notes so they reflect the newly selected season
+    try {
+        const notesContainer = document.getElementById('notesContainer');
+        if (notesContainer && !notesContainer.classList.contains('hidden')) {
+            renderNotes();
+        }
+    } catch (e) { /* ignore DOM errors */ }
+
     hideCharts();
 }
 
