@@ -1688,16 +1688,17 @@ function renderPlayersTable(groupedPlayers) {
                     <th>OVR</th>
                     <th>POT</th>
                     <th>Age</th>
-                    <th>Contract</th>
-                    <th>Skills</th>
-                    <th>WF</th>
-                    <th>Foot</th>
-                    <th>Value</th>
-                    <th>Wage</th>
-                    <th>Apps</th>
+                    <th>App</th>
                     <th>Goals</th>
                     <th>Assists</th>
+                    <th>Clean Sheets</th>
                     <th>Rating</th>
+                    <th>Skills</th>
+                    <th>Weak Foot</th>
+                    <th>Foot</th>
+                    <th>Wage</th>
+                    <th>Value</th>
+                    <th>Contract End</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -1709,7 +1710,7 @@ function renderPlayersTable(groupedPlayers) {
             const groupClass = 'group-' + groupName.toLowerCase().replace(/\s+/g, '-');
             html += `
                 <tr class="position-group-row ${groupClass}">
-                    <td colspan="16" class="position-group-header">${groupName}</td>
+                    <td colspan="17" class="position-group-header">${groupName}</td>
                 </tr>
             `;
             
@@ -1726,16 +1727,17 @@ function renderPlayersTable(groupedPlayers) {
                         <td>${player.overall || '-'}</td>
                         <td>${player.potential || '-'}</td>
                         <td>${player.age || '-'}</td>
-                        <td>${player.contractEnd || '-'}</td>
-                        <td>${renderStars(player.skills)}</td>
-                        <td>${renderStars(player.weakFoot)}</td>
-                        <td>${player.foot || '-'}</td>
-                        <td class="currency" data-currency="${currency}">${formatNumber(player.value)}</td>
-                        <td class="currency" data-currency="${currency}">${formatNumber(player.wage)}</td>
                         <td>${player.appearances || 0}</td>
                         <td>${player.goals || 0}</td>
                         <td>${player.assists || 0}</td>
+                        <td>${player.cleanSheets || 0}</td>
                         <td>${player.avgRating || '-'}</td>
+                        <td>${renderStars(player.skills)}</td>
+                        <td>${renderStars(player.weakFoot)}</td>
+                        <td>${player.foot || '-'}</td>
+                        <td class="currency" data-currency="${currency}">${formatNumber(player.wage)}</td>
+                        <td class="currency" data-currency="${currency}">${formatNumber(player.value)}</td>
+                        <td>${player.contractEnd || '-'}</td>
                         <td>
                             <div class="flex space-x-1">
                                 <button onclick="editPlayer('${player.id}')" class="text-blue-600 hover:text-blue-800" title="Edit">✏️</button>
