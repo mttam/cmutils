@@ -1691,10 +1691,10 @@ function renderPlayersTable(groupedPlayers) {
                     <th>App</th>
                     <th>Goals</th>
                     <th>Assists</th>
-                        <th>Clean Sheets</th>
-                        <th>Yellow Cards</th>
-                        <th>Red Cards</th>
-                        <th>Rating</th>
+                    <th>CS</th>
+                    <th>YC</th>
+                    <th>RC</th>
+                    <th>Rating</th>
                     <th>Skills</th>
                     <th>Weak Foot</th>
                     <th>Foot</th>
@@ -1706,6 +1706,32 @@ function renderPlayersTable(groupedPlayers) {
             </thead>
             <tbody>
     `;
+
+    // Helper: render a table cell whose classes adapt to the value (compact for short numeric values)
+    function renderAdaptiveCell(value) {
+        // Normalize value for display
+        const v = (value === 0 || value === '0') ? '0' : (value || '-') ;
+        const s = String(v);
+
+        // Simple numeric check (integers / decimals)
+        const isNumeric = /^-?\d+(?:\.\d+)?$/.test(s.replace(/,/g, ''));
+
+        // Determine classes based on length and type
+        let classes = 'px-2 py-1';
+        if (isNumeric) {
+            // compact widths for short numbers
+            if (s.length <= 3) classes += ' text-center w-12';
+            else if (s.length <= 5) classes += ' text-center w-20';
+            else classes += ' text-center';
+        } else {
+            // non-numeric: allow more room but keep padding
+            if (s.length <= 6) classes += ' text-center';
+            else classes += ' text-left';
+        }
+
+        // escapeHtml is declared later but hoisted as a function declaration; use it to be safe
+        return `<td class="${classes}">${escapeHtml(s)}</td>`;
+    }
 
     Object.entries(groupedPlayers).forEach(([groupName, players]) => {
         if (players.length > 0) {
@@ -1726,22 +1752,22 @@ function renderPlayersTable(groupedPlayers) {
                             <div class="text-sm text-gray-500">${renderNationalityHTML(player.nationality)}</div>
                         </td>
                         <td><span class="font-mono text-sm">${player.role}</span></td>
-                        <td>${player.overall || '-'}</td>
-                        <td>${player.potential || '-'}</td>
-                        <td>${player.age || '-'}</td>
-                        <td>${player.appearances || 0}</td>
-                        <td>${player.goals || 0}</td>
-                        <td>${player.assists || 0}</td>
-                        <td>${player.cleanSheets || 0}</td>
-                        <td>${player.yellowCards || 0}</td>
-                        <td>${player.redCards || 0}</td>
-                        <td>${player.avgRating || '-'}</td>
+                        ${renderAdaptiveCell(player.overall || '-')}
+                        ${renderAdaptiveCell(player.potential || '-')}
+                        ${renderAdaptiveCell(player.age || '-')}
+                        ${renderAdaptiveCell(player.appearances || 0)}
+                        ${renderAdaptiveCell(player.goals || 0)}
+                        ${renderAdaptiveCell(player.assists || 0)}
+                        ${renderAdaptiveCell(player.cleanSheets || 0)}
+                        ${renderAdaptiveCell(player.yellowCards || 0)}
+                        ${renderAdaptiveCell(player.redCards || 0)}
+                        ${renderAdaptiveCell(player.avgRating || '-')}
                         <td>${renderStars(player.skills)}</td>
                         <td>${renderStars(player.weakFoot)}</td>
-                        <td>${player.foot || '-'}</td>
+                        ${renderAdaptiveCell(player.foot || '-')}
                         <td class="currency" data-currency="${currency}">${formatNumber(player.wage)}</td>
                         <td class="currency" data-currency="${currency}">${formatNumber(player.value)}</td>
-                        <td>${player.contractEnd || '-'}</td>
+                        ${renderAdaptiveCell(player.contractEnd || '-')}
                         <td>
                             <div class="flex space-x-1">
                                 <button onclick="editPlayer('${player.id}')" class="text-blue-600 hover:text-blue-800" title="Edit">✏️</button>
