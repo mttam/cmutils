@@ -2652,24 +2652,30 @@ function openSeasonStatsEditModal() {
             document.getElementById('recordLosses').value = m0.losses || m0.loss || '';
             document.getElementById('recordGF').value = m0.goals_for || m0.goalsFor || '';
             document.getElementById('recordGA').value = m0.goals_against || m0.goalsAgainst || '';
-            // populate extended fields
-            document.getElementById('totalsGames').value = m0.totals_games || m0.totalsGames || '';
-            document.getElementById('totalsGamesHome').value = m0.totals_games_at_home || m0.totals_games_home || '';
-            document.getElementById('totalsGamesAway').value = m0.totals_games_away || '';
-            document.getElementById('winsHome').value = m0.wins_at_home || m0.winsHome || '';
-            document.getElementById('drawsHome').value = m0.spares_at_home || m0.draws_at_home || '';
-            document.getElementById('lossesHome').value = m0.loss_at_home || m0.losses_at_home || '';
-            document.getElementById('winsAway').value = m0.wins_away || '';
-            document.getElementById('drawsAway').value = m0.spares_away || '';
-            document.getElementById('lossesAway').value = m0.loss_away || '';
-            document.getElementById('goalsForHome').value = m0.goals_for_home || '';
-            document.getElementById('goalsAgainstHome').value = m0.goals_against_home || '';
-            document.getElementById('goalsForAway').value = m0.goals_for_away || '';
-            document.getElementById('goalsAgainstAway').value = m0.goals_against_away || '';
-            document.getElementById('cleanSheetsTotal').value = m0.clean_sheets || '';
-            document.getElementById('cleanSheetsHome').value = m0.clean_sheets_home || '';
-            document.getElementById('cleanSheetsAway').value = m0.clean_sheets_away || '';
-            document.getElementById('recordSpares').value = m0.spares || m0.draws || '';
+            // populate extended fields (only if inputs exist in the modal)
+            function setIfExists(id, value) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.value = value == null ? '' : value;
+            }
+
+            setIfExists('totalsGames', m0.totals_games || m0.totalsGames || '');
+            setIfExists('totalsGamesHome', m0.totals_games_at_home || m0.totals_games_home || '');
+            setIfExists('totalsGamesAway', m0.totals_games_away || '');
+            setIfExists('winsHome', m0.wins_at_home || m0.winsHome || '');
+            setIfExists('drawsHome', m0.spares_at_home || m0.draws_at_home || '');
+            setIfExists('lossesHome', m0.loss_at_home || m0.losses_at_home || '');
+            setIfExists('winsAway', m0.wins_away || '');
+            setIfExists('drawsAway', m0.spares_away || '');
+            setIfExists('lossesAway', m0.loss_away || '');
+            setIfExists('goalsForHome', m0.goals_for_home || '');
+            setIfExists('goalsAgainstHome', m0.goals_against_home || '');
+            setIfExists('goalsForAway', m0.goals_for_away || '');
+            setIfExists('goalsAgainstAway', m0.goals_against_away || '');
+            setIfExists('cleanSheetsTotal', m0.clean_sheets || '');
+            setIfExists('cleanSheetsHome', m0.clean_sheets_home || '');
+            setIfExists('cleanSheetsAway', m0.clean_sheets_away || '');
+            setIfExists('recordSpares', m0.spares || m0.draws || '');
         }
     }
 
@@ -2713,6 +2719,14 @@ function saveSeasonStatsEdits() {
 
         // write aggregated summary into season.matches[0] (preserves historical structures)
         if (!season.matches || !Array.isArray(season.matches)) season.matches = [];
+        // helper to safely read optional numeric inputs
+        function getIntIfExists(id) {
+            const el = document.getElementById(id);
+            if (!el) return undefined;
+            const v = parseInt(el.value);
+            return isNaN(v) ? undefined : v;
+        }
+
         season.matches[0] = Object.assign({}, season.matches[0] || {}, {
             totals_games: (w + d + l),
             wins: w,
@@ -2720,22 +2734,22 @@ function saveSeasonStatsEdits() {
             losses: l,
             goals_for: gf,
             goals_against: ga,
-            totals_games_at_home: parseInt(document.getElementById('totalsGamesHome').value) || undefined,
-            totals_games_away: parseInt(document.getElementById('totalsGamesAway').value) || undefined,
-            wins_at_home: parseInt(document.getElementById('winsHome').value) || undefined,
-            spares_at_home: parseInt(document.getElementById('drawsHome').value) || undefined,
-            loss_at_home: parseInt(document.getElementById('lossesHome').value) || undefined,
-            wins_away: parseInt(document.getElementById('winsAway').value) || undefined,
-            spares_away: parseInt(document.getElementById('drawsAway').value) || undefined,
-            loss_away: parseInt(document.getElementById('lossesAway').value) || undefined,
-            goals_for_home: parseInt(document.getElementById('goalsForHome').value) || undefined,
-            goals_against_home: parseInt(document.getElementById('goalsAgainstHome').value) || undefined,
-            goals_for_away: parseInt(document.getElementById('goalsForAway').value) || undefined,
-            goals_against_away: parseInt(document.getElementById('goalsAgainstAway').value) || undefined,
-            clean_sheets: parseInt(document.getElementById('cleanSheetsTotal').value) || undefined,
-            clean_sheets_home: parseInt(document.getElementById('cleanSheetsHome').value) || undefined,
-            clean_sheets_away: parseInt(document.getElementById('cleanSheetsAway').value) || undefined,
-            spares: parseInt(document.getElementById('recordSpares').value) || undefined
+            totals_games_at_home: getIntIfExists('totalsGamesHome'),
+            totals_games_away: getIntIfExists('totalsGamesAway'),
+            wins_at_home: getIntIfExists('winsHome'),
+            spares_at_home: getIntIfExists('drawsHome'),
+            loss_at_home: getIntIfExists('lossesHome'),
+            wins_away: getIntIfExists('winsAway'),
+            spares_away: getIntIfExists('drawsAway'),
+            loss_away: getIntIfExists('lossesAway'),
+            goals_for_home: getIntIfExists('goalsForHome'),
+            goals_against_home: getIntIfExists('goalsAgainstHome'),
+            goals_for_away: getIntIfExists('goalsForAway'),
+            goals_against_away: getIntIfExists('goalsAgainstAway'),
+            clean_sheets: getIntIfExists('cleanSheetsTotal'),
+            clean_sheets_home: getIntIfExists('cleanSheetsHome'),
+            clean_sheets_away: getIntIfExists('cleanSheetsAway'),
+            spares: getIntIfExists('recordSpares')
         });
 
         // trophies
@@ -3563,32 +3577,7 @@ function renderSeasonStatsPanel(season) {
             </div>`;
         }
 
-        // show extended aggregated fields (if present in season.matches[0])
-        try {
-            const m0 = (season && Array.isArray(season.matches) && season.matches[0]) ? season.matches[0] : null;
-            if (m0) {
-                const extHtml = `<div class="mt-3 text-sm grid grid-cols-1 md:grid-cols-3 gap-2">
-                    <div><strong>Total games</strong><div>${m0.totals_games || m0.totalsGames || '-'}</div></div>
-                    <div><strong>Games at home</strong><div>${m0.totals_games_at_home || m0.totals_games_home || '-'}</div></div>
-                    <div><strong>Games away</strong><div>${m0.totals_games_away || '-'}</div></div>
-                    <div><strong>Wins (home)</strong><div>${m0.wins_at_home || '-'}</div></div>
-                    <div><strong>Draws (home)</strong><div>${m0.spares_at_home || m0.draws_at_home || '-'}</div></div>
-                    <div><strong>Losses (home)</strong><div>${m0.loss_at_home || m0.losses_at_home || '-'}</div></div>
-                    <div><strong>Wins (away)</strong><div>${m0.wins_away || '-'}</div></div>
-                    <div><strong>Draws (away)</strong><div>${m0.spares_away || '-'}</div></div>
-                    <div><strong>Losses (away)</strong><div>${m0.loss_away || '-'}</div></div>
-                    <div><strong>Goals for (home)</strong><div>${m0.goals_for_home || '-'}</div></div>
-                    <div><strong>Goals against (home)</strong><div>${m0.goals_against_home || '-'}</div></div>
-                    <div><strong>Goals for (away)</strong><div>${m0.goals_for_away || '-'}</div></div>
-                    <div><strong>Goals against (away)</strong><div>${m0.goals_against_away || '-'}</div></div>
-                    <div><strong>Clean sheets (total)</strong><div>${m0.clean_sheets || '-'}</div></div>
-                    <div><strong>Clean sheets (home)</strong><div>${m0.clean_sheets_home || '-'}</div></div>
-                    <div><strong>Clean sheets (away)</strong><div>${m0.clean_sheets_away || '-'}</div></div>
-                    <div><strong>Spares/Draws</strong><div>${m0.spares || m0.draws || '-'}</div></div>
-                </div>`;
-                recEl.insertAdjacentHTML('beforeend', extHtml);
-            }
-        } catch (e) { /* ignore */ }
+        // Note: extended aggregated match fields were intentionally removed to simplify the season stats panel.
 
         function renderList(el, items) {
             if (!el) return;
