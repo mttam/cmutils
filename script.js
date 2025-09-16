@@ -999,9 +999,11 @@ async function initializeApp() {
         } catch (error) {
             console.warn('Could not load sample data:', error);
             // Create default season if no data available
+            const nowYear = new Date().getFullYear();
             currentSeasons = [{
                 id: generateId(),
-                name: '2025/2026',
+                name: `${nowYear}/${nowYear+1}`,
+                year: nowYear,
                 currency: 'USD',
                 roster: {
                     main_squad: { players: {} },
@@ -1127,6 +1129,14 @@ function validateAndCleanSeasons(seasons) {
         if (!season.id) season.id = generateId();
         if (!season.name) season.name = 'Unnamed Season';
         if (!season.currency) season.currency = 'USD';
+        // Ensure season.year exists and is numeric; default to current year
+        const nowYear = new Date().getFullYear();
+        if (season.year === undefined || season.year === null || season.year === '') {
+            season.year = nowYear;
+        } else {
+            const y = Number(season.year);
+            season.year = (!isNaN(y) && y >= 1900 && y <= 2100) ? Math.floor(y) : nowYear;
+        }
         if (!season.roster) season.roster = { main_squad: { players: {} }, youth_academy: { players: {} } };
         
         // Validate roster structure
@@ -1563,8 +1573,9 @@ function renderSeasonTabs() {
     currentSeasons.forEach(season => {
         const tab = document.createElement('div');
         tab.className = `season-tab ${season.id === currentSeasonId ? 'active' : ''}`;
+        const yearLabel = season.year ? ` <span class="text-xs text-gray-400">(${season.year})</span>` : '';
         tab.innerHTML = `
-            <span>${season.name}</span>
+            <span>${season.name}${yearLabel}</span>
             <button class="delete-btn" onclick="deleteSeason('${season.id}')" title="Delete Season">×</button>
         `;
 
@@ -2104,6 +2115,12 @@ function openSeasonModal(seasonId = null) {
         title.textContent = 'Edit Season';
         document.getElementById('seasonName').value = season.name;
         document.getElementById('seasonCurrency').value = season.currency;
+        // populate year if present
+        if (season.year !== undefined && season.year !== null) {
+            document.getElementById('seasonYear').value = season.year;
+        } else {
+            document.getElementById('seasonYear').value = '';
+        }
     } else {
         title.textContent = 'Add Season';
         form.reset();
@@ -2136,6 +2153,8 @@ function closeSeasonModal() {
 function saveSeason() {
     const name = document.getElementById('seasonName').value.trim();
     const currency = document.getElementById('seasonCurrency').value;
+    const yearVal = document.getElementById('seasonYear').value.trim();
+    const year = yearVal ? Number(yearVal) : null;
     
     clearSeasonErrors();
     
@@ -2149,6 +2168,10 @@ function saveSeason() {
         showSeasonError('seasonCurrency', 'Currency is required');
         isValid = false;
     }
+    if (!year || isNaN(year) || year < 1900 || year > 2100) {
+        showSeasonError('seasonYear', 'Season year is required (1900-2100)');
+        isValid = false;
+    }
     
     if (!isValid) return;
     
@@ -2157,12 +2180,14 @@ function saveSeason() {
         const season = currentSeasons.find(s => s.id === editingSeasonId);
         season.name = name;
         season.currency = currency;
+        season.year = year;
     } else {
         // Add new season
         const newSeason = {
             id: generateId(),
             name: name,
             currency: currency,
+            year: year,
             roster: {
                 main_squad: { players: {} },
                 youth_academy: { players: {} }
@@ -2211,7 +2236,7 @@ function deleteSeason(seasonId) {
 /**
  * Create a new season by copying the current one, advancing players by one year.
  * - increments numeric ages by 1
- * - advances contractEnd date by one year when parseable
+ * - decreases contractEnd (digit) by 1 to represent next-season years remaining (clamped to 0)
  * - creates a progressive season name based on current season.name, using suffix (2), (3), ...
  */
 function nextSeason() {
@@ -2236,11 +2261,13 @@ function nextSeason() {
                 const n = Number(p.age);
                 if (!isNaN(n)) p.age = n + 1;
             }
-            // increment contractEnd if it's a numeric digit (clamp to 9)
+            // decrease contractEnd if it's a numeric digit (represents years remaining); clamp at 0
             if (p.contractEnd !== undefined && p.contractEnd !== null && p.contractEnd !== '') {
                 const c = Number(p.contractEnd);
                 if (!isNaN(c)) {
-                    p.contractEnd = Math.min(9, Math.floor(c) + 1);
+                    // ensure integer, then decrement but not below 0
+                    const newC = Math.max(0, Math.floor(c) - 1);
+                    p.contractEnd = newC;
                 }
             }
         });
@@ -2268,6 +2295,12 @@ function nextSeason() {
     });
     const suffix = maxSuffix + 1;
     cloned.name = `${baseName} (${suffix})`;
+
+    // advance year if numeric
+    if (season.year !== undefined && season.year !== null) {
+        const y = Number(season.year);
+        if (!isNaN(y)) cloned.year = y + 1;
+    }
 
     // push and switch
     currentSeasons.push(cloned);
@@ -3085,22 +3118,10 @@ function renderGeneralDonutChart(players) {
         inc('Unknown');
     });
 
-    // sort keys by count desc
+    // sort keys by count desc and include all categories (no 'Other' grouping)
     const entries = Object.entries(counts).sort((a,b) => b[1] - a[1]);
-    // show top 10 and group rest into 'Other'
-    const topN = 10;
-    const labels = [];
-    const data = [];
-    let otherSum = 0;
-    entries.forEach((e, idx) => {
-        if (idx < topN) {
-            labels.push(e[0]);
-            data.push(e[1]);
-        } else {
-            otherSum += e[1];
-        }
-    });
-    if (otherSum > 0) { labels.push('Other'); data.push(otherSum); }
+    const labels = entries.map(e => e[0]);
+    const data = entries.map(e => e[1]);
 
     // build colors (reuse GROUP_COLORS when possible, otherwise generate palette)
     const palette = ['#4F46E5','#10B981','#F59E0B','#EF4444','#3B82F6','#8B5CF6','#06B6D4','#F97316','#14B8A6','#6366F1','#9CA3AF'];
