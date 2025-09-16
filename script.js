@@ -328,6 +328,200 @@ const POSITION_GROUPS = {
     'Forwards': ['LW', 'ST', 'RW']
 };
 
+// Role definitions mapping: position code -> array of { type, focus }
+// Populated from user-provided CSV mapping
+const ROLE_DEFINITIONS = {
+    'GK': [
+        { type: 'Goalkeeper', focus: 'Defend' },
+        { type: 'Goalkeeper', focus: 'Balanced' },
+        { type: 'Sweeper Keeper', focus: 'Balanced' },
+        { type: 'Sweeper Keeper', focus: 'Build-Up' }
+    ],
+    'RB': [
+        { type: 'Fullback', focus: 'Defend' },
+        { type: 'Fullback', focus: 'Balanced' },
+        { type: 'Wingback', focus: 'Balanced' },
+        { type: 'Wingback', focus: 'Support' },
+        { type: 'Falseback', focus: 'Defend' },
+        { type: 'Falseback', focus: 'Balanced' },
+        { type: 'Attacking Wingback', focus: 'Balanced' },
+        { type: 'Attacking Wingback', focus: 'Attack' }
+    ],
+    'LB': [
+        { type: 'Fullback', focus: 'Defend' },
+        { type: 'Fullback', focus: 'Balanced' },
+        { type: 'Wingback', focus: 'Balanced' },
+        { type: 'Wingback', focus: 'Support' },
+        { type: 'Falseback', focus: 'Defend' },
+        { type: 'Falseback', focus: 'Balanced' },
+        { type: 'Attacking Wingback', focus: 'Balanced' },
+        { type: 'Attacking Wingback', focus: 'Attack' }
+    ],
+    'CB': [
+        { type: 'Defend', focus: 'Defend' },
+        { type: 'Defend', focus: 'Balanced' },
+        { type: 'Stopper', focus: 'Balanced' },
+        { type: 'Stopper', focus: 'Aggressive' },
+        { type: 'Ball-Playing Defender', focus: 'Defend' },
+        { type: 'Ball-Playing Defender', focus: 'Build-Up' },
+        { type: 'Ball-Playing Defender', focus: 'Aggressive' }
+    ],
+    'CDM': [
+        { type: 'Holding', focus: 'Defend' },
+        { type: 'Holding', focus: 'Roaming' },
+        { type: 'Holding', focus: 'Ball-Winning' },
+        { type: 'Centre-Half', focus: 'Defend' },
+        { type: 'Deep-Lying Playmaker', focus: 'Defend' },
+        { type: 'Deep-Lying Playmaker', focus: 'Roaming' },
+        { type: 'Deep-Lying Playmaker', focus: 'Build-Up' },
+        { type: 'Wide Half', focus: 'Defend' },
+        { type: 'Wide Half', focus: 'Build-Up' }
+    ],
+    'CM': [
+        { type: 'Box-To-Box', focus: 'Balanced' },
+        { type: 'Holding', focus: 'Defend' },
+        { type: 'Holding', focus: 'Ball-Winning' },
+        { type: 'Deep-Lying Playmaker', focus: 'Defend' },
+        { type: 'Deep-Lying Playmaker', focus: 'Build-Up' },
+        { type: 'Playmaker', focus: 'Attack' },
+        { type: 'Playmaker', focus: 'Roaming' },
+        { type: 'Half-Winger', focus: 'Balanced' },
+        { type: 'Half-Winger', focus: 'Attack' }
+    ],
+    'LM': [
+        { type: 'Winger', focus: 'Balanced' },
+        { type: 'Winger', focus: 'Attack' },
+        { type: 'Wide Midfielder', focus: 'Defend' },
+        { type: 'Wide Midfielder', focus: 'Balanced' },
+        { type: 'Wide Playmaker', focus: 'Attack' },
+        { type: 'Wide Playmaker', focus: 'Build-Up' },
+        { type: 'Inside Forward', focus: 'Balanced' },
+        { type: 'Inside Forward', focus: 'Attack' }
+    ],
+    'RM': [
+        { type: 'Winger', focus: 'Balanced' },
+        { type: 'Winger', focus: 'Attack' },
+        { type: 'Wide Midfielder', focus: 'Defend' },
+        { type: 'Wide Midfielder', focus: 'Balanced' },
+        { type: 'Wide Playmaker', focus: 'Attack' },
+        { type: 'Wide Playmaker', focus: 'Build-Up' },
+        { type: 'Inside Forward', focus: 'Balanced' },
+        { type: 'Inside Forward', focus: 'Attack' }
+    ],
+    'CAM': [
+        { type: 'Playmaker', focus: 'Balanced' },
+        { type: 'Playmaker', focus: 'Roaming' },
+        { type: 'Playmaker', focus: 'Build-Up' },
+        { type: 'Shadow Striker', focus: 'Attack' },
+        { type: 'Half-Winger', focus: 'Balanced' },
+        { type: 'Half-Winger', focus: 'Attack' },
+        { type: 'Classic 10', focus: 'Attack' },
+        { type: 'Classic 10', focus: 'Wide' }
+    ],
+    'LW': [
+        { type: 'Winger', focus: 'Balanced' },
+        { type: 'Winger', focus: 'Attack' },
+        { type: 'Inside Forward', focus: 'Balanced' },
+        { type: 'Inside Forward', focus: 'Attack' },
+        { type: 'Inside Forward', focus: 'Roaming' },
+        { type: 'Wide Playmaker', focus: 'Build-Up' }
+    ],
+    'RW': [
+        { type: 'Winger', focus: 'Balanced' },
+        { type: 'Winger', focus: 'Attack' },
+        { type: 'Inside Forward', focus: 'Balanced' },
+        { type: 'Inside Forward', focus: 'Attack' },
+        { type: 'Inside Forward', focus: 'Roaming' },
+        { type: 'Wide Playmaker', focus: 'Build-Up' }
+    ],
+    'ST': [
+        { type: 'Advanced Forward', focus: 'Attack' },
+        { type: 'Advanced Forward', focus: 'Complete' },
+        { type: 'Advanced Forward', focus: 'Support' },
+        { type: 'Poacher', focus: 'Attack' },
+        { type: 'Poacher', focus: 'Support' },
+        { type: 'False 9', focus: 'Build-Up' },
+        { type: 'Target Forward', focus: 'Balanced' },
+        { type: 'Target Forward', focus: 'Attack' },
+        { type: 'Target Forward', focus: 'Wide' }
+    ]
+};
+
+// Populate Role Type and Focus selects when role changes
+document.addEventListener('DOMContentLoaded', () => {
+    const roleEl = document.getElementById('role');
+    const roleTypeEl = document.getElementById('roleType');
+    const roleFocusEl = document.getElementById('roleFocus');
+
+    function populateRoleTypeAndFocus(posCode, selectedType, selectedFocus) {
+        // clear
+        roleTypeEl.innerHTML = '<option value="">Select Role Type</option>';
+        roleFocusEl.innerHTML = '<option value="">Select Focus</option>';
+
+        if (!posCode) return;
+        // Try direct code or map RB/LB combined later
+        const defs = ROLE_DEFINITIONS[posCode] || [];
+        // collect unique types and foci
+        const types = [];
+        const foci = [];
+        defs.forEach(d => {
+            if (!types.includes(d.type)) types.push(d.type);
+            if (!foci.includes(d.focus)) foci.push(d.focus);
+        });
+
+        types.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t;
+            opt.textContent = t;
+            if (selectedType && selectedType === t) opt.selected = true;
+            roleTypeEl.appendChild(opt);
+        });
+
+        foci.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f;
+            opt.textContent = f;
+            if (selectedFocus && selectedFocus === f) opt.selected = true;
+            roleFocusEl.appendChild(opt);
+        });
+    }
+
+    if (roleEl) {
+        roleEl.addEventListener('change', () => {
+            const code = roleEl.value;
+            // store current selections
+            // When role (position) changes, update all role type rows to match available options.
+            const rows = document.querySelectorAll('.role-type-row');
+            rows.forEach(row => {
+                const typeSelect = row.querySelector('.roleTypeSelect');
+                const focusSelect = row.querySelector('.roleFocusSelect');
+                const prevType = typeSelect ? typeSelect.value : '';
+                const prevFocus = focusSelect ? focusSelect.value : '';
+                // repopulate options for this row
+                if (typeSelect && focusSelect) {
+                    // clear
+                    typeSelect.innerHTML = '<option value="">Select Role Type</option>';
+                    focusSelect.innerHTML = '<option value="">Select Focus</option>';
+                    const defs = ROLE_DEFINITIONS[code] || [];
+                    const types = [];
+                    const foci = [];
+                    defs.forEach(d => { if (!types.includes(d.type)) types.push(d.type); if (!foci.includes(d.focus)) foci.push(d.focus); });
+                    types.forEach(t => { const opt = document.createElement('option'); opt.value = t; opt.textContent = t; typeSelect.appendChild(opt); });
+                    foci.forEach(f => { const opt = document.createElement('option'); opt.value = f; opt.textContent = f; focusSelect.appendChild(opt); });
+                    // restore previous if still valid
+                    const stillHasType = Array.from(typeSelect.options).some(o => o.value === prevType && prevType !== '');
+                    const stillHasFocus = Array.from(focusSelect.options).some(o => o.value === prevFocus && prevFocus !== '');
+                    typeSelect.value = stillHasType ? prevType : '';
+                    focusSelect.value = stillHasFocus ? prevFocus : '';
+                }
+            });
+        });
+    }
+
+    // expose helper for openPlayerModal to pre-populate when editing
+    window.populateRoleTypeAndFocus = populateRoleTypeAndFocus;
+});
+
 // Color palette per position group (primary and lighter variant for record backgrounds)
 const GROUP_COLORS = {
     'Goalkeepers': { color: '#FBBF24', light: '#FEF3C7' }, // Yellow
@@ -645,7 +839,70 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     // initialize flag picker UI
     try { setupFlagPicker(); } catch (e) { console.warn('Flag picker init failed', e); }
+    // role-types dynamic UI setup
+    setupRoleTypesUI();
 });
+
+// Role types UI helpers
+function createRoleTypeRow(posCode, data = {}) {
+    // data: { type, focus, level }
+    const container = document.createElement('div');
+    container.className = 'role-type-row flex gap-2 items-center';
+
+    const typeSelect = document.createElement('select');
+    typeSelect.className = 'roleTypeSelect w-1/2 border border-gray-300 rounded px-2 py-1 text-sm';
+    typeSelect.innerHTML = '<option value="">Select Role Type</option>';
+
+    const focusSelect = document.createElement('select');
+    focusSelect.className = 'roleFocusSelect w-1/3 border border-gray-300 rounded px-2 py-1 text-sm';
+    focusSelect.innerHTML = '<option value="">Select Focus</option>';
+
+    const levelSelect = document.createElement('select');
+    levelSelect.className = 'roleLevelSelect w-1/6 border border-gray-300 rounded px-2 py-1 text-sm';
+    levelSelect.innerHTML = '<option value="">None</option><option value="1">+</option><option value="2">++</option>';
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'text-red-600 text-sm';
+    removeBtn.textContent = 'Remove';
+    removeBtn.addEventListener('click', () => container.remove());
+
+    container.appendChild(typeSelect);
+    container.appendChild(focusSelect);
+    container.appendChild(levelSelect);
+    container.appendChild(removeBtn);
+
+    // populate options based on current role selected in modal
+    const roleEl = document.getElementById('role');
+    const selectedRole = roleEl ? roleEl.value : '';
+    const defs = ROLE_DEFINITIONS[selectedRole] || [];
+    const types = [];
+    const foci = [];
+    defs.forEach(d => { if (!types.includes(d.type)) types.push(d.type); if (!foci.includes(d.focus)) foci.push(d.focus); });
+    types.forEach(t => {
+        const opt = document.createElement('option'); opt.value = t; opt.textContent = t; if (data.type && data.type === t) opt.selected = true; typeSelect.appendChild(opt);
+    });
+    foci.forEach(f => {
+        const opt = document.createElement('option'); opt.value = f; opt.textContent = f; if (data.focus && data.focus === f) opt.selected = true; focusSelect.appendChild(opt);
+    });
+
+    if (data.level) levelSelect.value = data.level;
+
+    return container;
+}
+
+function setupRoleTypesUI() {
+    const container = document.getElementById('roleTypesContainer');
+    const addBtn = document.getElementById('addRoleTypeBtn');
+    if (!container || !addBtn) return;
+
+    addBtn.addEventListener('click', () => {
+        const row = createRoleTypeRow(document.getElementById('role') ? document.getElementById('role').value : '', {});
+        container.appendChild(row);
+    });
+
+    // When role changes, repopulation handled earlier in role change listener
+}
 
 // Initialize flag picker after DOM is ready
 function setupFlagPicker() {
@@ -1188,6 +1445,20 @@ function validateAndCleanSeasons(seasons) {
 
                 // Use the (possibly newly generated) player.id as the key in the rebuilt object
                 rebuiltPlayers[player.id] = player;
+            });
+
+            // After rebuilding players, migrate legacy roleType fields into roleTypes array if present
+            Object.values(rebuiltPlayers).forEach(p => {
+                try {
+                    if (!Array.isArray(p.roleTypes) && (p.roleType || p.roleFocus || p.roleTypeLevel)) {
+                        p.roleTypes = [];
+                        if (p.roleType) p.roleTypes.push({ type: p.roleType, focus: p.roleFocus || '', level: p.roleTypeLevel || '' });
+                        // remove legacy fields to avoid duplication (keep for compatibility if needed)
+                        delete p.roleType;
+                        delete p.roleFocus;
+                        delete p.roleTypeLevel;
+                    }
+                } catch (e) { /* ignore migration errors */ }
             });
 
             // Replace the players object with the rebuilt one (this ensures keys match player.id)
@@ -1761,7 +2032,7 @@ function renderPlayersTable(groupedPlayers) {
                     <tr draggable="true" data-player-id="${player.id}" data-position-group="${groupName}" class="player-row ${groupClass} ${isForSale ? 'for-sale' : ''}${isOnLoan ? ' on-loan' : ''}">
                         <td>
                             <div class="font-medium">${player.firstName} ${player.lastName} ${isOnLoan ? `<span class="on-loan-badge" onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.loan}')" title="Toggle Loan">Loan</span>` : ''} ${isForSale ? `<span class="for-sale-badge" onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.forSale}')" title="Toggle For Sale">For Sale</span>` : ''}</div>
-                            <div class="text-sm text-gray-500">${renderNationalityHTML(player.nationality)}</div>
+                            <div class="text-sm text-gray-500">${renderNationalityHTML(player.nationality)}${formatRoleTypesHTML(player)}</div>
                         </td>
                         <td><span class="font-mono text-sm">${player.role}</span></td>
                         ${renderAdaptiveCell(player.overall || '-')}
@@ -1779,7 +2050,7 @@ function renderPlayersTable(groupedPlayers) {
                         ${renderAdaptiveCell(player.foot || '-')}
                         <td class="currency" data-currency="${currency}">${formatNumber(player.wage)}</td>
                         <td class="currency" data-currency="${currency}">${formatNumber(player.value)}</td>
-                        ${renderAdaptiveCell((player.contractEnd !== undefined && player.contractEnd !== null && player.contractEnd !== '') ? player.contractEnd : '-')}
+                        ${ (function(){ const c = (player.contractEnd !== undefined && player.contractEnd !== null && player.contractEnd !== '') ? player.contractEnd : '-'; const inner = `${escapeHtml(String(c))}`; return `<td class="px-2 py-1 text-center">${inner}</td>`; })() }
                         <td>
                             <div class="flex space-x-1">
                                 <button onclick="editPlayer('${player.id}')" class="text-blue-600 hover:text-blue-800" title="Edit">✏️</button>
@@ -1832,7 +2103,7 @@ function renderPlayersCards(groupedPlayers) {
                         <div class="flex justify-between items-start mb-2">
                             <div>
                                 <div class="font-semibold">${player.firstName} ${player.lastName} ${isOnLoan ? `<span class="on-loan-badge" onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.loan}')" title="Toggle Loan">Loan</span>` : ''} ${isForSale ? `<span class="for-sale-badge" onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.forSale}')" title="Toggle For Sale">For Sale</span>` : ''}</div>
-                                <div class="text-sm text-gray-500">${renderNationalityHTML(player.nationality)} • ${player.role}</div>
+                                <div class="text-sm text-gray-500">${renderNationalityHTML(player.nationality)} • ${player.role}${formatRoleTypesHTML(player)}</div>
                             </div>
                             <div class="flex space-x-1 items-center">
                                 <button onclick="editPlayer('${player.id}')" class="text-blue-600" title="Edit">✏️</button>
@@ -1893,6 +2164,28 @@ function renderStars(rating) {
     }
     html += '</div>';
     return html;
+}
+
+/**
+ * Format player's roleTypes (supports legacy single fields) as inline HTML to render under nationality
+ */
+function formatRoleTypesHTML(player) {
+    const items = [];
+    if (Array.isArray(player.roleTypes) && player.roleTypes.length) {
+        player.roleTypes.forEach(rt => {
+            if (rt && rt.type) {
+                const suf = rt.level === '1' ? '+' : rt.level === '2' ? '++' : '';
+                items.push(escapeHtml(rt.type + suf));
+            }
+        });
+    } else if (player.roleType) {
+        const suf = player.roleTypeLevel === '1' ? '+' : player.roleTypeLevel === '2' ? '++' : '';
+        items.push(escapeHtml(player.roleType + suf));
+    }
+
+    if (items.length === 0) return '';
+    // join with separator
+    return `<div class="text-xs text-gray-600 mt-1">${items.join(' • ')}</div>`;
 }
 
 /**
@@ -2381,6 +2674,25 @@ function populatePlayerForm(player) {
     document.getElementById('lastName').value = player.lastName || '';
     document.getElementById('nationality').value = player.nationality || '';
     document.getElementById('role').value = player.role || '';
+    // Populate role types container (support legacy single fields)
+    try {
+        const container = document.getElementById('roleTypesContainer');
+        if (container) {
+            container.innerHTML = '';
+            // If player has new-style array, use it; otherwise map legacy fields
+            const roleTypes = Array.isArray(player.roleTypes) ? player.roleTypes : (player.roleType ? [{ type: player.roleType, focus: player.roleFocus || '', level: player.roleTypeLevel || '' }] : []);
+            if (roleTypes.length === 0) {
+                // add an empty row so user can add
+                const row = createRoleTypeRow(player.role || '', {});
+                container.appendChild(row);
+            } else {
+                roleTypes.forEach(rt => {
+                    const row = createRoleTypeRow(player.role || '', { type: rt.type || '', focus: rt.focus || '', level: rt.level || rt.level || '' });
+                    container.appendChild(row);
+                });
+            }
+        }
+    } catch (e) { console.warn('populatePlayerForm roleTypes error', e); }
     document.getElementById('overall').value = player.overall || '';
     document.getElementById('potential').value = player.potential || '';
     document.getElementById('age').value = player.age || '';
@@ -2495,11 +2807,26 @@ function savePlayer() {
  * Get form data as object
  */
 function getPlayerFormData() {
+    const roleTypesContainer = document.getElementById('roleTypesContainer');
+    const roleTypes = [];
+    if (roleTypesContainer) {
+        const rows = roleTypesContainer.querySelectorAll('.role-type-row');
+        rows.forEach(r => {
+            const type = r.querySelector('.roleTypeSelect') ? r.querySelector('.roleTypeSelect').value : '';
+            const focus = r.querySelector('.roleFocusSelect') ? r.querySelector('.roleFocusSelect').value : '';
+            const level = r.querySelector('.roleLevelSelect') ? r.querySelector('.roleLevelSelect').value : '';
+            if (type) roleTypes.push({ type, focus, level });
+        });
+    }
+
     return {
         firstName: document.getElementById('firstName').value.trim(),
         lastName: document.getElementById('lastName').value.trim(),
         nationality: document.getElementById('nationality').value.trim(),
         role: document.getElementById('role').value,
+        // new fields
+        // roleTypes: array of {type, focus, level}
+        roleTypes: roleTypes,
         overall: parseInt(document.getElementById('overall').value) || 0,
         potential: parseInt(document.getElementById('potential').value) || 0,
         age: parseInt(document.getElementById('age').value) || 0,
@@ -3640,10 +3967,21 @@ function exportSeasonStatsJSON() {
     try {
         const season = getCurrentSeason();
         if (!season) return alert('No season selected');
+        // include players basic list with roleTypes for convenience
+        const playersAll = Object.assign({}, (season.roster && season.roster.main_squad && season.roster.main_squad.players) || {}, (season.roster && season.roster.youth_academy && season.roster.youth_academy.players) || {});
+        const playersList = Object.values(playersAll).map(p => ({
+            id: p.id,
+            firstName: p.firstName,
+            lastName: p.lastName,
+            role: p.role,
+            roleTypes: Array.isArray(p.roleTypes) ? p.roleTypes : (p.roleType ? [{ type: p.roleType, focus: p.roleFocus || null, level: p.roleTypeLevel || null }] : [])
+        }));
+
         const data = {
             record: computeSeasonRecord(season),
             trophies: computeSeasonTrophies(season),
-            playerAwards: computePlayerAwards(season)
+            playerAwards: computePlayerAwards(season),
+            players: playersList
         };
         const str = JSON.stringify(data, null, 2);
         const uri = 'data:application/json;charset=utf-8,' + encodeURIComponent(str);
@@ -3661,6 +3999,24 @@ function exportSeasonStatsCSV() {
         const record = computeSeasonRecord(season) || { wins: '', draws: '', losses: '', goalsFor: '', goalsAgainst: '' };
         const awards = computePlayerAwards(season) || [];
 
+        // helper to format roleTypes for CSV
+        function formatRoleTypesForExport(player) {
+            const parts = [];
+            if (Array.isArray(player.roleTypes) && player.roleTypes.length) {
+                player.roleTypes.forEach(rt => {
+                    if (!rt) return;
+                    const levelSuffix = rt.level === '1' ? '+' : rt.level === '2' ? '++' : '';
+                    const focus = rt.focus ? `:${rt.focus}` : '';
+                    parts.push(`${rt.type || ''}${levelSuffix}${focus}`);
+                });
+            } else if (player.roleType) {
+                const levelSuffix = player.roleTypeLevel === '1' ? '+' : player.roleTypeLevel === '2' ? '++' : '';
+                const focus = player.roleFocus ? `:${player.roleFocus}` : '';
+                parts.push(`${player.roleType || ''}${levelSuffix}${focus}`);
+            }
+            return parts.join(' | ');
+        }
+
         // season_record.csv
         const recCsv = ['wins,draws,losses,goalsFor,goalsAgainst', `${record.wins},${record.draws},${record.losses},${record.goalsFor},${record.goalsAgainst}`].join('\n');
 
@@ -3669,8 +4025,26 @@ function exportSeasonStatsCSV() {
         const rows = awards.map(a => [a.playerId || '', '"' + (a.name || '') + '"', '"' + (a.awardName || '') + '"', a.appearances ?? '', a.goals ?? '', a.assists ?? '', a.avgRating ?? '', a.overall ?? '', '"' + (a.note || '') + '"'].join(','));
         const awardsCsv = hdr.concat(rows).join('\n');
 
+        // players.csv - include basic player info and roleTypes
+        const playersAll = Object.assign({}, (season.roster && season.roster.main_squad && season.roster.main_squad.players) || {}, (season.roster && season.roster.youth_academy && season.roster.youth_academy.players) || {});
+        const playersHdr = ['id,firstName,lastName,role,roleTypes,overall,potential,age,contractEnd,value,wage'];
+        const playersRows = Object.values(playersAll).map(p => [
+            p.id || '',
+            '"' + (p.firstName || '') + '"',
+            '"' + (p.lastName || '') + '"',
+            '"' + (p.role || '') + '"',
+            '"' + formatRoleTypesForExport(p) + '"',
+            p.overall ?? '',
+            p.potential ?? '',
+            p.age ?? '',
+            (p.contractEnd !== undefined && p.contractEnd !== null && p.contractEnd !== '') ? p.contractEnd : '',
+            p.value ?? '',
+            p.wage ?? ''
+        ].join(','));
+        const playersCsv = playersHdr.concat(playersRows).join('\n');
+
         // create multi-part download by zipping into a single blob with separators
-        const combined = `=== season_record.csv ===\n${recCsv}\n\n=== player_awards.csv ===\n${awardsCsv}`;
+        const combined = `=== season_record.csv ===\n${recCsv}\n\n=== player_awards.csv ===\n${awardsCsv}\n\n=== players.csv ===\n${playersCsv}`;
         const uri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(combined);
         const a = document.createElement('a');
         a.setAttribute('href', uri);
