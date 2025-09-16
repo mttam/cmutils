@@ -841,6 +841,8 @@ document.addEventListener('DOMContentLoaded', function() {
     try { setupFlagPicker(); } catch (e) { console.warn('Flag picker init failed', e); }
     // role-types dynamic UI setup
     setupRoleTypesUI();
+    // playstyles dynamic UI setup
+    setupPlaystylesUI();
 });
 
 // Role types UI helpers
@@ -902,6 +904,125 @@ function setupRoleTypesUI() {
     });
 
     // When role changes, repopulation handled earlier in role change listener
+}
+
+// Playstyles definitions
+const PLAYSTYLE_DEFINITIONS = [
+    { category: 'Finishing', name: 'Finesse Shot' },
+    { category: 'Finishing', name: 'Chip Shot' },
+    { category: 'Finishing', name: 'Power Shot' },
+    { category: 'Finishing', name: 'Dead Ball' },
+    { category: 'Finishing', name: 'Precision Header' },
+    { category: 'Finishing', name: 'Acrobatic' },
+    { category: 'Finishing', name: 'Low Driven Shot' },
+    { category: 'Finishing', name: 'Gamechanger' },
+    { category: 'Passing', name: 'Incisive Pass' },
+    { category: 'Passing', name: 'Pinged Pass' },
+    { category: 'Passing', name: 'Long Ball Pass' },
+    { category: 'Passing', name: 'Tiki Taka' },
+    { category: 'Passing', name: 'Whipped Pass' },
+    { category: 'Passing', name: 'Inventive' },
+    { category: 'Defending', name: 'Jockey' },
+    { category: 'Defending', name: 'Block' },
+    { category: 'Defending', name: 'Intercept' },
+    { category: 'Defending', name: 'Anticipate' },
+    { category: 'Defending', name: 'Slide Tackle' },
+    { category: 'Defending', name: 'Aerial Fortress' },
+    { category: 'Ballcontrol', name: 'Technical' },
+    { category: 'Ballcontrol', name: 'Rapid' },
+    { category: 'Ballcontrol', name: 'First Touch' },
+    { category: 'Ballcontrol', name: 'Trickster' },
+    { category: 'Ballcontrol', name: 'Press Proven' },
+    { category: 'Physical', name: 'Quick Step' },
+    { category: 'Physical', name: 'Relentless' },
+    { category: 'Physical', name: 'Long Throw' },
+    { category: 'Physical', name: 'Bruiser' },
+    { category: 'Physical', name: 'Enforcer' },
+    { category: 'Goalkeeper', name: 'Far Throw' },
+    { category: 'Goalkeeper', name: 'Footwork' },
+    { category: 'Goalkeeper', name: 'Cross Claimer' },
+    { category: 'Goalkeeper', name: 'Rush Out' },
+    { category: 'Goalkeeper', name: 'Far Reach' },
+    { category: 'Goalkeeper', name: 'Deflector' }
+];
+
+// Playstyles UI helpers
+function createPlaystyleRow(data = {}) {
+    // data: { category, name, level }
+    const container = document.createElement('div');
+    container.className = 'playstyle-row flex gap-2 items-center';
+
+    const categorySelect = document.createElement('select');
+    categorySelect.className = 'playstyleCategorySelect w-1/3 border border-gray-300 rounded px-2 py-1 text-sm';
+    categorySelect.innerHTML = '<option value="">Category</option>';
+
+    const nameSelect = document.createElement('select');
+    nameSelect.className = 'playstyleNameSelect w-1/2 border border-gray-300 rounded px-2 py-1 text-sm';
+    nameSelect.innerHTML = '<option value="">Playstyle</option>';
+
+    const levelSelect = document.createElement('select');
+    levelSelect.className = 'playstyleLevelSelect w-1/6 border border-gray-300 rounded px-2 py-1 text-sm';
+    // Display user-friendly labels, store values as '1' (Normal) and '2' (+)
+    levelSelect.innerHTML = '<option value="">Level</option><option value="1">Normal</option><option value="2">+</option>';
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'text-red-600 text-sm';
+    removeBtn.textContent = 'Remove';
+    removeBtn.addEventListener('click', () => container.remove());
+
+    container.appendChild(categorySelect);
+    container.appendChild(nameSelect);
+    container.appendChild(levelSelect);
+    container.appendChild(removeBtn);
+
+    // Populate category options
+    const categories = Array.from(new Set(PLAYSTYLE_DEFINITIONS.map(p => p.category)));
+    categories.forEach(cat => {
+        const opt = document.createElement('option'); opt.value = cat; opt.textContent = cat; if (data.category && data.category === cat) opt.selected = true; categorySelect.appendChild(opt);
+    });
+
+    // Helper to populate names based on selected category
+    function populateNames(selectedCat) {
+        nameSelect.innerHTML = '<option value="">Playstyle</option>';
+        PLAYSTYLE_DEFINITIONS.filter(p => p.category === selectedCat).forEach(p => {
+            const opt = document.createElement('option'); opt.value = p.name; opt.textContent = p.name; if (data.name && data.name === p.name) opt.selected = true; nameSelect.appendChild(opt);
+        });
+    }
+
+    categorySelect.addEventListener('change', (e) => populateNames(e.target.value));
+
+    // if data preselected, populate names
+    if (data.category) populateNames(data.category);
+    if (data.level) levelSelect.value = data.level;
+
+    return container;
+}
+
+function setupPlaystylesUI() {
+    const container = document.getElementById('playstylesContainer');
+    const addBtn = document.getElementById('addPlaystyleBtn');
+    if (!container || !addBtn) return;
+
+    addBtn.addEventListener('click', () => {
+        const row = createPlaystyleRow({});
+        container.appendChild(row);
+    });
+}
+
+// Render playstyles HTML under nationality similar to role types
+function formatPlaystylesHTML(player) {
+    const items = [];
+    if (Array.isArray(player.playstyles) && player.playstyles.length) {
+        player.playstyles.forEach(ps => {
+            if (ps && ps.name) {
+                const suf = ps.level === '2' ? '+' : '';
+                items.push(escapeHtml(ps.name + suf));
+            }
+        });
+    }
+    if (items.length === 0) return '';
+    return `<div class="text-xs text-gray-600 mt-1">${items.join(' • ')}</div>`;
 }
 
 // Initialize flag picker after DOM is ready
@@ -2032,7 +2153,7 @@ function renderPlayersTable(groupedPlayers) {
                     <tr draggable="true" data-player-id="${player.id}" data-position-group="${groupName}" class="player-row ${groupClass} ${isForSale ? 'for-sale' : ''}${isOnLoan ? ' on-loan' : ''}">
                         <td>
                             <div class="font-medium">${player.firstName} ${player.lastName} ${isOnLoan ? `<span class="on-loan-badge" onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.loan}')" title="Toggle Loan">Loan</span>` : ''} ${isForSale ? `<span class="for-sale-badge" onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.forSale}')" title="Toggle For Sale">For Sale</span>` : ''}</div>
-                            <div class="text-sm text-gray-500">${renderNationalityHTML(player.nationality)}${formatRoleTypesHTML(player)}</div>
+                            <div class="text-sm text-gray-500">${renderNationalityHTML(player.nationality)}${formatRoleTypesHTML(player)}${formatPlaystylesHTML(player)}</div>
                         </td>
                         <td><span class="font-mono text-sm">${player.role}</span></td>
                         ${renderAdaptiveCell(player.overall || '-')}
@@ -2103,7 +2224,7 @@ function renderPlayersCards(groupedPlayers) {
                         <div class="flex justify-between items-start mb-2">
                             <div>
                                 <div class="font-semibold">${player.firstName} ${player.lastName} ${isOnLoan ? `<span class="on-loan-badge" onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.loan}')" title="Toggle Loan">Loan</span>` : ''} ${isForSale ? `<span class="for-sale-badge" onclick="addPlayerToTransferList('${player.id}','${TRANSFER_KEYS.forSale}')" title="Toggle For Sale">For Sale</span>` : ''}</div>
-                                <div class="text-sm text-gray-500">${renderNationalityHTML(player.nationality)} • ${player.role}${formatRoleTypesHTML(player)}</div>
+                                <div class="text-sm text-gray-500">${renderNationalityHTML(player.nationality)} • ${player.role}${formatRoleTypesHTML(player)}${formatPlaystylesHTML(player)}</div>
                             </div>
                             <div class="flex space-x-1 items-center">
                                 <button onclick="editPlayer('${player.id}')" class="text-blue-600" title="Edit">✏️</button>
@@ -2693,6 +2814,23 @@ function populatePlayerForm(player) {
             }
         }
     } catch (e) { console.warn('populatePlayerForm roleTypes error', e); }
+    // Populate playstyles container
+    try {
+        const psContainer = document.getElementById('playstylesContainer');
+        if (psContainer) {
+            psContainer.innerHTML = '';
+            const playstyles = Array.isArray(player.playstyles) ? player.playstyles : [];
+            if (playstyles.length === 0) {
+                const row = createPlaystyleRow({});
+                psContainer.appendChild(row);
+            } else {
+                playstyles.forEach(ps => {
+                    const row = createPlaystyleRow({ category: ps.category || '', name: ps.name || '', level: ps.level || '' });
+                    psContainer.appendChild(row);
+                });
+            }
+        }
+    } catch (e) { console.warn('populatePlayerForm playstyles error', e); }
     document.getElementById('overall').value = player.overall || '';
     document.getElementById('potential').value = player.potential || '';
     document.getElementById('age').value = player.age || '';
@@ -2818,6 +2956,18 @@ function getPlayerFormData() {
             if (type) roleTypes.push({ type, focus, level });
         });
     }
+    // collect playstyles
+    const playstylesContainer = document.getElementById('playstylesContainer');
+    const playstyles = [];
+    if (playstylesContainer) {
+        const rows = playstylesContainer.querySelectorAll('.playstyle-row');
+        rows.forEach(r => {
+            const category = r.querySelector('.playstyleCategorySelect') ? r.querySelector('.playstyleCategorySelect').value : '';
+            const name = r.querySelector('.playstyleNameSelect') ? r.querySelector('.playstyleNameSelect').value : '';
+            const level = r.querySelector('.playstyleLevelSelect') ? r.querySelector('.playstyleLevelSelect').value : '';
+            if (name) playstyles.push({ category, name, level });
+        });
+    }
 
     return {
         firstName: document.getElementById('firstName').value.trim(),
@@ -2827,6 +2977,7 @@ function getPlayerFormData() {
         // new fields
         // roleTypes: array of {type, focus, level}
         roleTypes: roleTypes,
+    playstyles: playstyles,
         overall: parseInt(document.getElementById('overall').value) || 0,
         potential: parseInt(document.getElementById('potential').value) || 0,
         age: parseInt(document.getElementById('age').value) || 0,
@@ -3974,7 +4125,8 @@ function exportSeasonStatsJSON() {
             firstName: p.firstName,
             lastName: p.lastName,
             role: p.role,
-            roleTypes: Array.isArray(p.roleTypes) ? p.roleTypes : (p.roleType ? [{ type: p.roleType, focus: p.roleFocus || null, level: p.roleTypeLevel || null }] : [])
+            roleTypes: Array.isArray(p.roleTypes) ? p.roleTypes : (p.roleType ? [{ type: p.roleType, focus: p.roleFocus || null, level: p.roleTypeLevel || null }] : []),
+            playstyles: Array.isArray(p.playstyles) ? p.playstyles : (p.playstyle ? [{ category: p.playstyleCategory || '', name: p.playstyle || '', level: p.playstyleLevel || '' }] : [])
         }));
 
         const data = {
@@ -4017,6 +4169,24 @@ function exportSeasonStatsCSV() {
             return parts.join(' | ');
         }
 
+        // helper to format playstyles for CSV
+        function formatPlaystylesForExport(player) {
+            const parts = [];
+            if (Array.isArray(player.playstyles) && player.playstyles.length) {
+                player.playstyles.forEach(ps => {
+                    if (!ps) return;
+                    const levelSuffix = ps.level === '2' ? '+' : '';
+                    const cat = ps.category ? `${ps.category}:` : '';
+                    parts.push(`${cat}${ps.name || ''}${levelSuffix}`);
+                });
+            } else if (player.playstyle) {
+                const levelSuffix = player.playstyleLevel === '2' ? '+' : '';
+                const cat = player.playstyleCategory ? `${player.playstyleCategory}:` : '';
+                parts.push(`${cat}${player.playstyle || ''}${levelSuffix}`);
+            }
+            return parts.join(' | ');
+        }
+
         // season_record.csv
         const recCsv = ['wins,draws,losses,goalsFor,goalsAgainst', `${record.wins},${record.draws},${record.losses},${record.goalsFor},${record.goalsAgainst}`].join('\n');
 
@@ -4027,13 +4197,14 @@ function exportSeasonStatsCSV() {
 
         // players.csv - include basic player info and roleTypes
         const playersAll = Object.assign({}, (season.roster && season.roster.main_squad && season.roster.main_squad.players) || {}, (season.roster && season.roster.youth_academy && season.roster.youth_academy.players) || {});
-        const playersHdr = ['id,firstName,lastName,role,roleTypes,overall,potential,age,contractEnd,value,wage'];
+        const playersHdr = ['id,firstName,lastName,role,roleTypes,playstyles,overall,potential,age,contractEnd,value,wage'];
         const playersRows = Object.values(playersAll).map(p => [
             p.id || '',
             '"' + (p.firstName || '') + '"',
             '"' + (p.lastName || '') + '"',
             '"' + (p.role || '') + '"',
             '"' + formatRoleTypesForExport(p) + '"',
+            '"' + formatPlaystylesForExport(p) + '"',
             p.overall ?? '',
             p.potential ?? '',
             p.age ?? '',
