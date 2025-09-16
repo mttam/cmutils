@@ -155,7 +155,7 @@
                             <option value="avgRating">Avg Rating</option>
                             <option value="nationality">Nationality (mode count)</option>
                             <option value="foot">Preferred Foot (mode count)</option>
-                            <option value="contractEnd">Contract End (avg year)</option>
+                            <option value="contractEnd">Contract (avg)</option>
                         </select>
                     </div>
                     <canvas id="positionStatChart" width="400" height="200"></canvas>
@@ -166,7 +166,7 @@
                             <option value="nationality">Nationality</option>
                             <option value="role">Role</option>
                             <option value="foot">Preferred Foot</option>
-                            <option value="contractEnd">Contract Year</option>
+                            <option value="contractEnd">Contract (digit)</option>
                             <option value="overall">Overall (rating)</option>
                             <option value="potential">Potential (rating)</option>
                             <option value="skills">Skills (1-5)</option>
@@ -436,8 +436,8 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium mb-1">Contract End</label>
-                        <input type="date" id="contractEnd" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
+                        <label class="block text-sm font-medium mb-1">Contract (0-9)</label>
+                        <input type="number" id="contractEnd" min="0" max="9" step="1" inputmode="numeric" pattern="\d" placeholder="e.g. 3" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black">
                     </div>
                 </form>
                 <div class="flex justify-end space-x-2 mt-6">

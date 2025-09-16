@@ -66,11 +66,11 @@ function computePositionAverages(players) {
         const foot = p.foot || 'Unknown';
         footCounts[pos][foot] = (footCounts[pos][foot] || 0) + 1;
 
-        // Contract average via timestamp
-        if (p.contractEnd) {
-            const ts = Date.parse(p.contractEnd);
-            if (!isNaN(ts)) {
-                contractSums[pos] += ts;
+        // Contract is a single-digit number (0-9). Sum numeric values for averaging.
+        if (p.contractEnd !== undefined && p.contractEnd !== null && p.contractEnd !== '') {
+            const c = Number(p.contractEnd);
+            if (!isNaN(c)) {
+                contractSums[pos] += c;
                 contractCounts[pos] += 1;
             }
         }
@@ -97,11 +97,12 @@ function computePositionAverages(players) {
             if (fCounts[k] > topFootCount) { topFoot = k; topFootCount = fCounts[k]; }
         });
 
-        // average contract end as date string
+        // average contract as numeric digit (rounded to 1 decimal if needed)
         let avgContract = null;
         if (contractCounts[pos] > 0) {
-            const avgTs = Math.round(contractSums[pos] / contractCounts[pos]);
-            avgContract = new Date(avgTs).toISOString().split('T')[0];
+            const avg = contractSums[pos] / contractCounts[pos];
+            // If average is effectively an integer, keep integer, otherwise round to 1 decimal
+            avgContract = Number.isInteger(avg) ? avg : Math.round(avg * 10) / 10;
         }
 
         averages[pos] = {
@@ -189,9 +190,9 @@ function computeGroupAverages(players) {
         const foot = p.foot || 'Unknown';
         footCounts[group][foot] = (footCounts[group][foot] || 0) + 1;
 
-        if (p.contractEnd) {
-            const ts = Date.parse(p.contractEnd);
-            if (!isNaN(ts)) { contractSums[group] += ts; contractCounts[group] += 1; }
+        if (p.contractEnd !== undefined && p.contractEnd !== null && p.contractEnd !== '') {
+            const c = Number(p.contractEnd);
+            if (!isNaN(c)) { contractSums[group] += c; contractCounts[group] += 1; }
         }
 
         counts[group] += 1;
@@ -213,8 +214,8 @@ function computeGroupAverages(players) {
 
         let avgContract = null;
         if (contractCounts[group] > 0) {
-            const avgTs = Math.round(contractSums[group] / contractCounts[group]);
-            avgContract = new Date(avgTs).toISOString().split('T')[0];
+            const avg = contractSums[group] / contractCounts[group];
+            avgContract = Number.isInteger(avg) ? avg : Math.round(avg * 10) / 10;
         }
 
         averages[group] = {
@@ -268,7 +269,7 @@ function renderPositionAverages(players) {
     html += '<th class="px-2 py-1">Nationality (mode)</th>';
     html += '<th class="px-2 py-1">Overall</th>';
     html += '<th class="px-2 py-1">Potential</th>';
-    html += '<th class="px-2 py-1">Contract End (avg)</th>';
+    html += '<th class="px-2 py-1">Contract (avg)</th>';
     html += '<th class="px-2 py-1">Skills</th>';
     html += '<th class="px-2 py-1">Weak Foot</th>';
     html += '<th class="px-2 py-1">Foot (mode)</th>';
@@ -1525,7 +1526,7 @@ function renderTransfers() {
                             <div>OVR: <span class="font-medium">${p.overall || '-'}</span></div>
                             <div>POT: <span class="font-medium">${p.potential || '-'}</span></div>
                             <div>Age: <span class="font-medium">${p.age || '-'}</span></div>
-                            <div>Contract: <span class="font-medium">${p.contractEnd || '-'}</span></div>
+                            <div>Contract: <span class="font-medium">${(p.contractEnd !== undefined && p.contractEnd !== null && p.contractEnd !== '') ? p.contractEnd : '-'}</span></div>
                             <div>Skills: ${renderStars(p.skills)}</div>
                             <div>Weak Foot: ${renderStars(p.weakFoot)}</div>
                             <div>Value: <span class="font-medium">${currency}${formatNumber(p.value)}</span></div>
@@ -1767,7 +1768,7 @@ function renderPlayersTable(groupedPlayers) {
                         ${renderAdaptiveCell(player.foot || '-')}
                         <td class="currency" data-currency="${currency}">${formatNumber(player.wage)}</td>
                         <td class="currency" data-currency="${currency}">${formatNumber(player.value)}</td>
-                        ${renderAdaptiveCell(player.contractEnd || '-')}
+                        ${renderAdaptiveCell((player.contractEnd !== undefined && player.contractEnd !== null && player.contractEnd !== '') ? player.contractEnd : '-')}
                         <td>
                             <div class="flex space-x-1">
                                 <button onclick="editPlayer('${player.id}')" class="text-blue-600 hover:text-blue-800" title="Edit">✏️</button>
@@ -1845,7 +1846,7 @@ function renderPlayersCards(groupedPlayers) {
                             <div>OVR: <span class="font-medium">${player.overall || '-'}</span></div>
                             <div>POT: <span class="font-medium">${player.potential || '-'}</span></div>
                             <div>Age: <span class="font-medium">${player.age || '-'}</span></div>
-                            <div>Contract: <span class="font-medium">${player.contractEnd || '-'}</span></div>
+                            <div>Contract: <span class="font-medium">${(player.contractEnd !== undefined && player.contractEnd !== null && player.contractEnd !== '') ? player.contractEnd : '-'}</span></div>
                             <div>Skills: ${renderStars(player.skills)}</div>
                             <div>Weak Foot: ${renderStars(player.weakFoot)}</div>
                             <div>Value: <span class="font-medium">${currency}${formatNumber(player.value)}</span></div>
@@ -2235,6 +2236,13 @@ function nextSeason() {
                 const n = Number(p.age);
                 if (!isNaN(n)) p.age = n + 1;
             }
+            // increment contractEnd if it's a numeric digit (clamp to 9)
+            if (p.contractEnd !== undefined && p.contractEnd !== null && p.contractEnd !== '') {
+                const c = Number(p.contractEnd);
+                if (!isNaN(c)) {
+                    p.contractEnd = Math.min(9, Math.floor(c) + 1);
+                }
+            }
         });
     });
 
@@ -2343,7 +2351,8 @@ function populatePlayerForm(player) {
     document.getElementById('overall').value = player.overall || '';
     document.getElementById('potential').value = player.potential || '';
     document.getElementById('age').value = player.age || '';
-    document.getElementById('contractEnd').value = player.contractEnd || '';
+    // contractEnd is stored as a single digit number; display as string if present
+    document.getElementById('contractEnd').value = (player.contractEnd !== undefined && player.contractEnd !== null && player.contractEnd !== '') ? String(player.contractEnd) : '';
     document.getElementById('skills').value = player.skills || '';
     document.getElementById('weakFoot').value = player.weakFoot || '';
     document.getElementById('foot').value = player.foot || '';
@@ -2461,7 +2470,8 @@ function getPlayerFormData() {
         overall: parseInt(document.getElementById('overall').value) || 0,
         potential: parseInt(document.getElementById('potential').value) || 0,
         age: parseInt(document.getElementById('age').value) || 0,
-        contractEnd: document.getElementById('contractEnd').value,
+    // store contractEnd as Number when possible; leave empty string as ''
+    contractEnd: (function(){ const v = document.getElementById('contractEnd').value; if (v === '' || v === null || v === undefined) return ''; const n = Number(v); return Number.isNaN(n) ? '' : n; })(),
         skills: parseInt(document.getElementById('skills').value) || 0,
         weakFoot: parseInt(document.getElementById('weakFoot').value) || 0,
         foot: document.getElementById('foot').value,
@@ -2888,8 +2898,8 @@ function renderPositionStatChart(players) {
         } else if (stat === 'foot') {
             value = a.footCount || 0;
         } else if (stat === 'contractEnd') {
-            // convert contractEnd avg to year number if available
-            value = a.contractEnd ? Number(a.contractEnd.split('-')[0]) : 0;
+            // contractEnd avg is stored as a numeric value (digit or rounded decimal)
+            value = a.contractEnd !== null && a.contractEnd !== undefined && a.contractEnd !== '' ? Number(a.contractEnd) : 0;
         } else {
             value = Number(a[stat]) || 0;
         }
@@ -3048,9 +3058,9 @@ function renderGeneralDonutChart(players) {
         if (stat === 'role') { inc(p.role || 'Unknown'); return; }
         if (stat === 'foot') { inc(p.foot || 'Unknown'); return; }
         if (stat === 'contractEnd') {
-            if (p.contractEnd) {
-                const t = Date.parse(p.contractEnd);
-                inc(isNaN(t) ? 'Unknown' : String(new Date(t).getFullYear()));
+            if (p.contractEnd !== undefined && p.contractEnd !== null && p.contractEnd !== '') {
+                const c = Number(p.contractEnd);
+                if (!isNaN(c)) inc(String(c)); else inc('Unknown');
             } else inc('Unknown');
             return;
         }
