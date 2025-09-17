@@ -15,6 +15,14 @@
               "lastName": "Adams",
               "nationality": "ENG",
               "role": "GK",
+              "roleTypes": [
+                { "type": "Goalkeeper", "focus": "Shot Stopping", "level": "3" },
+                { "type": "Sweeper Keeper", "focus": "Support", "level": "1" }
+              ],
+              "playstyles": [
+                { "category": "Mental", "name": "Calm Presence", "level": "2" },
+                { "category": "Distribution", "name": "Accurate Kicks", "level": "1" }
+              ],
               "overall": 61,
               "potential": 73,
               "age": 24,
@@ -40,6 +48,14 @@
               "lastName": "Mendez",
               "nationality": "ESP",
               "role": "LB",
+              "roleTypes": [
+                { "type": "Fullback", "focus": "Attacking", "level": "2" },
+                { "type": "Wingback", "focus": "Support", "level": "1" }
+              ],
+              "playstyles": [
+                { "category": "Physical", "name": "Stamina Machine", "level": "2" },
+                { "category": "Attacking", "name": "Cross Specialist", "level": "2" }
+              ],
               "overall": 70,
               "potential": 88,
               "age": 22,
@@ -65,6 +81,13 @@
               "lastName": "Rossi",
               "nationality": "ITA",
               "role": "CB",
+              "roleTypes": [
+                { "type": "Center Back", "focus": "Defensive", "level": "4" }
+              ],
+              "playstyles": [
+                { "category": "Defending", "name": "Aerial Dominator", "level": "3" },
+                { "category": "Mental", "name": "Leader", "level": "2" }
+              ],
               "overall": 88,
               "potential": 85,
               "age": 30,
@@ -90,6 +113,12 @@
               "lastName": "Yamada",
               "nationality": "JPN",
               "role": "RB",
+              "roleTypes": [
+                { "type": "Fullback", "focus": "Defensive", "level": "1" }
+              ],
+              "playstyles": [
+                { "category": "Attacking", "name": "Overlap Runner", "level": "1" }
+              ],
               "overall": 54,
               "potential": 60,
               "age": 20,
@@ -115,6 +144,13 @@
               "lastName": "Novak",
               "nationality": "CZE",
               "role": "CDM",
+              "roleTypes": [
+                { "type": "Defensive Midfielder", "focus": "Ball Winning", "level": "2" }
+              ],
+              "playstyles": [
+                { "category": "Defending", "name": "Shield", "level": "2" },
+                { "category": "Passing", "name": "Simple Passer", "level": "1" }
+              ],
               "overall": 67,
               "potential": 74,
               "age": 26,
@@ -140,6 +176,13 @@
               "lastName": "Khan",
               "nationality": "PAK",
               "role": "LM",
+              "roleTypes": [
+                { "type": "Winger", "focus": "Balanced", "level": "3" }
+              ],
+              "playstyles": [
+                { "category": "Dribbling", "name": "Take On", "level": "3" },
+                { "category": "Attacking", "name": "Chance Creator", "level": "2" }
+              ],
               "overall": 75,
               "potential": 79,
               "age": 23,
@@ -165,6 +208,13 @@
               "lastName": "Ionescu",
               "nationality": "ROU",
               "role": "CM",
+              "roleTypes": [
+                { "type": "Box-to-Box", "focus": "Balanced", "level": "4" }
+              ],
+              "playstyles": [
+                { "category": "Mental", "name": "Engine", "level": "3" },
+                { "category": "Passing", "name": "Key Passer", "level": "2" }
+              ],
               "overall": 82,
               "potential": 90,
               "age": 27,
@@ -190,6 +240,13 @@
               "lastName": "Brown",
               "nationality": "USA",
               "role": "RM",
+              "roleTypes": [
+                { "type": "Winger", "focus": "Attacking", "level": "5" }
+              ],
+              "playstyles": [
+                { "category": "Attacking", "name": "Gamechanger", "level": "5" },
+                { "category": "Dribbling", "name": "Skillful Dribbler", "level": "4" }
+              ],
               "overall": 90,
               "potential": 98,
               "age": 21,
@@ -215,6 +272,13 @@
               "lastName": "Conte",
               "nationality": "BRA",
               "role": "CAM",
+              "roleTypes": [
+                { "type": "Attacking Midfielder", "focus": "Creative", "level": "3" }
+              ],
+              "playstyles": [
+                { "category": "Attacking", "name": "Playmaker", "level": "3" },
+                { "category": "Finishing", "name": "Clinical Finisher", "level": "2" }
+              ],
               "overall": 76,
               "potential": 77,
               "age": 25,
@@ -240,6 +304,13 @@
               "lastName": "Moretti",
               "nationality": "ITA",
               "role": "LW",
+              "roleTypes": [
+                { "type": "Winger", "focus": "Attacking", "level": "5" }
+              ],
+              "playstyles": [
+                { "category": "Attacking", "name": "Goal Scorer", "level": "5" },
+                { "category": "Dribbling", "name": "Take On", "level": "4" }
+              ],
               "overall": 99,
               "potential": 98,
               "age": 29,
@@ -265,6 +336,13 @@
               "lastName": "Cole",
               "nationality": "AUS",
               "role": "ST",
+              "roleTypes": [
+                { "type": "Striker", "focus": "Poacher", "level": "5" }
+              ],
+              "playstyles": [
+                { "category": "Finishing", "name": "Clinical Finisher", "level": "4" },
+                { "category": "Movement", "name": "Off The Shoulder", "level": "3" }
+              ],
               "overall": 90,
               "potential": 98,
               "age": 19,
@@ -290,6 +368,12 @@
               "lastName": "Gomez",
               "nationality": "ARG",
               "role": "RW",
+              "roleTypes": [
+                { "type": "Winger", "focus": "Balanced", "level": "3" }
+              ],
+              "playstyles": [
+                { "category": "Attacking", "name": "Cross Specialist", "level": "2" }
+              ],
               "overall": 80,
               "potential": 87,
               "age": 24,
@@ -315,6 +399,12 @@
               "lastName": "Iverson",
               "nationality": "SCO",
               "role": "CB",
+              "roleTypes": [
+                { "type": "Center Back", "focus": "Defensive", "level": "2" }
+              ],
+              "playstyles": [
+                { "category": "Defending", "name": "Tackler", "level": "2" }
+              ],
               "overall": 64,
               "potential": 70,
               "age": 28,
@@ -340,6 +430,12 @@
               "lastName": "Kovalenko",
               "nationality": "UKR",
               "role": "LB",
+              "roleTypes": [
+                { "type": "Fullback", "focus": "Attacking", "level": "3" }
+              ],
+              "playstyles": [
+                { "category": "Attacking", "name": "Reliable Crosser", "level": "2" }
+              ],
               "overall": 71,
               "potential": 75,
               "age": 26,
@@ -365,6 +461,12 @@
               "lastName": "Said",
               "nationality": "NGA",
               "role": "CDM",
+              "roleTypes": [
+                { "type": "Defensive Midfielder", "focus": "Ball Winning", "level": "3" }
+              ],
+              "playstyles": [
+                { "category": "Defending", "name": "Interceptor", "level": "2" }
+              ],
               "overall": 69,
               "potential": 72,
               "age": 25,
@@ -390,6 +492,12 @@
               "lastName": "Silva",
               "nationality": "POR",
               "role": "CM",
+              "roleTypes": [
+                { "type": "Central Midfielder", "focus": "Balanced", "level": "3" }
+              ],
+              "playstyles": [
+                { "category": "Passing", "name": "Box To Box Support", "level": "2" }
+              ],
               "overall": 77,
               "potential": 80,
               "age": 24,
@@ -415,6 +523,12 @@
               "lastName": "Petrov",
               "nationality": "RUS",
               "role": "RM",
+              "roleTypes": [
+                { "type": "Winger", "focus": "Defensive", "level": "1" }
+              ],
+              "playstyles": [
+                { "category": "Work Rate", "name": "Two-Way Runner", "level": "1" }
+              ],
               "overall": 59,
               "potential": 65,
               "age": 21,
@@ -440,6 +554,13 @@
               "lastName": "El Mansour",
               "nationality": "MAR",
               "role": "CAM",
+              "roleTypes": [
+                { "type": "Attacking Midfielder", "focus": "Creative", "level": "5" }
+              ],
+              "playstyles": [
+                { "category": "Attacking", "name": "Playmaker", "level": "4" },
+                { "category": "Finishing", "name": "Long Shot Taker", "level": "3" }
+              ],
               "overall": 84,
               "potential": 86,
               "age": 28,
@@ -465,6 +586,12 @@
               "lastName": "Sokolov",
               "nationality": "BLR",
               "role": "LW",
+              "roleTypes": [
+                { "type": "Winger", "focus": "Balanced", "level": "2" }
+              ],
+              "playstyles": [
+                { "category": "Attacking", "name": "Wide Threat", "level": "2" }
+              ],
               "overall": 66,
               "potential": 71,
               "age": 23,
@@ -490,6 +617,12 @@
               "lastName": "Reid",
               "nationality": "IRL",
               "role": "ST",
+              "roleTypes": [
+                { "type": "Striker", "focus": "Target Man", "level": "3" }
+              ],
+              "playstyles": [
+                { "category": "Physical", "name": "Hold Up Play", "level": "2" }
+              ],
               "overall": 73,
               "potential": 78,
               "age": 26,
@@ -515,6 +648,12 @@
               "lastName": "Markov",
               "nationality": "SRB",
               "role": "RW",
+              "roleTypes": [
+                { "type": "Winger", "focus": "Attacking", "level": "4" }
+              ],
+              "playstyles": [
+                { "category": "Attacking", "name": "Creator", "level": "3" }
+              ],
               "overall": 85,
               "potential": 89,
               "age": 27,
@@ -540,6 +679,12 @@
               "lastName": "Zaytsev",
               "nationality": "KAZ",
               "role": "CB",
+              "roleTypes": [
+                { "type": "Center Back", "focus": "Ball Playing", "level": "3" }
+              ],
+              "playstyles": [
+                { "category": "Passing", "name": "Progressive Passer", "level": "2" }
+              ],
               "overall": 78,
               "potential": 81,
               "age": 29,
@@ -565,6 +710,12 @@
               "lastName": "Ali",
               "nationality": "PAK",
               "role": "LB",
+              "roleTypes": [
+                { "type": "Fullback", "focus": "Defensive", "level": "1" }
+              ],
+              "playstyles": [
+                { "category": "Defending", "name": "Solid Defender", "level": "1" }
+              ],
               "overall": 62,
               "potential": 68,
               "age": 22,
@@ -590,6 +741,12 @@
               "lastName": "Diaz",
               "nationality": "CHL",
               "role": "CDM",
+              "roleTypes": [
+                { "type": "Defensive Midfielder", "focus": "Ball Distribution", "level": "3" }
+              ],
+              "playstyles": [
+                { "category": "Passing", "name": "Deep Lying Playmaker", "level": "2" }
+              ],
               "overall": 71,
               "potential": 76,
               "age": 25,
@@ -615,6 +772,12 @@
               "lastName": "Nakamura",
               "nationality": "JPN",
               "role": "CM",
+              "roleTypes": [
+                { "type": "Central Midfielder", "focus": "Support", "level": "2" }
+              ],
+              "playstyles": [
+                { "category": "Attacking", "name": "Box To Box", "level": "2" }
+              ],
               "overall": 68,
               "potential": 74,
               "age": 23,
@@ -640,6 +803,12 @@
               "lastName": "Gonzalez",
               "nationality": "MEX",
               "role": "LM",
+              "roleTypes": [
+                { "type": "Winger", "focus": "Attacking", "level": "4" }
+              ],
+              "playstyles": [
+                { "category": "Attacking", "name": "Cut Inside", "level": "3" }
+              ],
               "overall": 74,
               "potential": 82,
               "age": 24,
@@ -665,6 +834,12 @@
               "lastName": "Foster",
               "nationality": "USA",
               "role": "RW",
+              "roleTypes": [
+                { "type": "Winger", "focus": "Support", "level": "2" }
+              ],
+              "playstyles": [
+                { "category": "Attacking", "name": "Cross From Deep", "level": "1" }
+              ],
               "overall": 63,
               "potential": 69,
               "age": 22,
@@ -690,6 +865,13 @@
               "lastName": "Costa",
               "nationality": "POR",
               "role": "ST",
+              "roleTypes": [
+                { "type": "Striker", "focus": "Complete Forward", "level": "5" }
+              ],
+              "playstyles": [
+                { "category": "Attacking", "name": "Complete Forward", "level": "4" },
+                { "category": "Finishing", "name": "Clinical Finisher", "level": "4" }
+              ],
               "overall": 86,
               "potential": 90,
               "age": 28,
@@ -715,6 +897,12 @@
               "lastName": "Peterson",
               "nationality": "CAN",
               "role": "CB",
+              "roleTypes": [
+                { "type": "Center Back", "focus": "Young Prospect", "level": "1" }
+              ],
+              "playstyles": [
+                { "category": "Mental", "name": "Learning Defender", "level": "1" }
+              ],
               "overall": 58,
               "potential": 64,
               "age": 21,
@@ -740,6 +928,12 @@
               "lastName": "Fernandes",
               "nationality": "BRA",
               "role": "CAM",
+              "roleTypes": [
+                { "type": "Attacking Midfielder", "focus": "Creative", "level": "3" }
+              ],
+              "playstyles": [
+                { "category": "Attacking", "name": "Chance Creator", "level": "3" }
+              ],
               "overall": 79,
               "potential": 83,
               "age": 26,
