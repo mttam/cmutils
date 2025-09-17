@@ -907,14 +907,19 @@ function setupRoleTypesUI() {
 }
 
 // Playstyles definitions
+// Added: 'Flair' (Ballcontrol), 'Trivela' (Finishing), 'Power Header' (Scoring)
+// Mental playstyles (these do not support the '+' level): Solid Player, Team Player,
+// One Club Player, Injury Prone, Leadership
 const PLAYSTYLE_DEFINITIONS = [
     { category: 'Finishing', name: 'Finesse Shot' },
     { category: 'Finishing', name: 'Chip Shot' },
     { category: 'Finishing', name: 'Power Shot' },
     { category: 'Finishing', name: 'Dead Ball' },
     { category: 'Finishing', name: 'Precision Header' },
+    { category: 'Finishing', name: 'Trivela' },
     { category: 'Finishing', name: 'Acrobatic' },
     { category: 'Finishing', name: 'Low Driven Shot' },
+    { category: 'Finishing', name: 'Power Header' },
     { category: 'Finishing', name: 'Gamechanger' },
     { category: 'Passing', name: 'Incisive Pass' },
     { category: 'Passing', name: 'Pinged Pass' },
@@ -931,6 +936,7 @@ const PLAYSTYLE_DEFINITIONS = [
     { category: 'Ballcontrol', name: 'Technical' },
     { category: 'Ballcontrol', name: 'Rapid' },
     { category: 'Ballcontrol', name: 'First Touch' },
+    { category: 'Ballcontrol', name: 'Flair' },
     { category: 'Ballcontrol', name: 'Trickster' },
     { category: 'Ballcontrol', name: 'Press Proven' },
     { category: 'Physical', name: 'Quick Step' },
@@ -944,7 +950,12 @@ const PLAYSTYLE_DEFINITIONS = [
     { category: 'Goalkeeper', name: 'Rush Out' },
     { category: 'Goalkeeper', name: 'Far Reach' },
     { category: 'Goalkeeper', name: 'Deflector' }
-];
+    ,{ category: 'Mental', name: 'Solid Player' }
+    ,{ category: 'Mental', name: 'Team Player' }
+    ,{ category: 'Mental', name: 'One Club Player' }
+    ,{ category: 'Mental', name: 'Injury Prone' }
+    ,{ category: 'Mental', name: 'Leadership' }
+ ];
 
 // Playstyles UI helpers
 function createPlaystyleRow(data = {}) {
@@ -963,6 +974,7 @@ function createPlaystyleRow(data = {}) {
     const levelSelect = document.createElement('select');
     levelSelect.className = 'playstyleLevelSelect w-1/6 border border-gray-300 rounded px-2 py-1 text-sm';
     // Display user-friendly labels, store values as '1' (Normal) and '2' (+)
+    // Default includes '+' but certain categories (Mental) should not allow '+'
     levelSelect.innerHTML = '<option value="">Level</option><option value="1">Normal</option><option value="2">+</option>';
 
     const removeBtn = document.createElement('button');
@@ -988,6 +1000,22 @@ function createPlaystyleRow(data = {}) {
         PLAYSTYLE_DEFINITIONS.filter(p => p.category === selectedCat).forEach(p => {
             const opt = document.createElement('option'); opt.value = p.name; opt.textContent = p.name; if (data.name && data.name === p.name) opt.selected = true; nameSelect.appendChild(opt);
         });
+        // If selected category is 'Mental', remove/disable the '+' option
+        if (selectedCat === 'Mental') {
+            // ensure levelSelect only has Normal option
+            const prev = levelSelect.value;
+            levelSelect.innerHTML = '<option value="">Level</option><option value="1">Normal</option>';
+            // if previous value was '2', clear it to avoid showing '+' for mental playstyles
+            if (prev === '2') levelSelect.value = '';
+            else levelSelect.value = prev;
+        } else {
+            // restore full options if not Mental and options missing
+            if (!Array.from(levelSelect.options).some(o => o.value === '2')) {
+                const prev = levelSelect.value;
+                levelSelect.innerHTML = '<option value="">Level</option><option value="1">Normal</option><option value="2">+</option>';
+                levelSelect.value = prev && prev !== '2' ? prev : prev === '2' ? '2' : '';
+            }
+        }
     }
 
     categorySelect.addEventListener('change', (e) => populateNames(e.target.value));
@@ -2825,7 +2853,10 @@ function populatePlayerForm(player) {
                 psContainer.appendChild(row);
             } else {
                 playstyles.forEach(ps => {
-                    const row = createPlaystyleRow({ category: ps.category || '', name: ps.name || '', level: ps.level || '' });
+                    // Mental playstyles do not support '+' (level '2')
+                    let lvl = ps.level || '';
+                    if ((ps.category || '') === 'Mental' && lvl === '2') lvl = '';
+                    const row = createPlaystyleRow({ category: ps.category || '', name: ps.name || '', level: lvl });
                     psContainer.appendChild(row);
                 });
             }
