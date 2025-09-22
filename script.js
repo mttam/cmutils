@@ -2170,7 +2170,7 @@ function renderPlayersTable(groupedPlayers) {
             const groupClass = 'group-' + groupName.toLowerCase().replace(/\s+/g, '-');
             html += `
                 <tr class="position-group-row ${groupClass}">
-                    <td colspan="19" class="position-group-header">${groupName}</td>
+                    <td colspan="20" class="position-group-header">${groupName}</td>
                 </tr>
             `;
             
@@ -2184,6 +2184,7 @@ function renderPlayersTable(groupedPlayers) {
                             <div class="text-sm text-gray-500">${renderNationalityHTML(player.nationality)}${formatRoleTypesHTML(player)}${formatPlaystylesHTML(player)}</div>
                         </td>
                         <td><span class="font-mono text-sm">${player.role}</span></td>
+                        ${renderAdaptiveCell(player.initialOverall || '-')}
                         ${renderAdaptiveCell(player.overall || '-')}
                         ${renderAdaptiveCell(player.potential || '-')}
                         ${renderAdaptiveCell(player.age || '-')}
@@ -2274,6 +2275,7 @@ function renderPlayersCards(groupedPlayers) {
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div>Init OVR: <span class="font-medium">${player.initialOverall || '-'}</span></div>
                             <div>OVR: <span class="font-medium">${player.overall || '-'}</span></div>
                             <div>POT: <span class="font-medium">${player.potential || '-'}</span></div>
                             <div>Age: <span class="font-medium">${player.age || '-'}</span></div>
@@ -2863,6 +2865,7 @@ function populatePlayerForm(player) {
         }
     } catch (e) { console.warn('populatePlayerForm playstyles error', e); }
     document.getElementById('overall').value = player.overall || '';
+    document.getElementById('initialOverall').value = player.initialOverall || '';
     document.getElementById('potential').value = player.potential || '';
     document.getElementById('age').value = player.age || '';
     // contractEnd is stored as a single digit number; display as string if present
@@ -3010,6 +3013,7 @@ function getPlayerFormData() {
         roleTypes: roleTypes,
     playstyles: playstyles,
         overall: parseInt(document.getElementById('overall').value) || 0,
+    initialOverall: parseInt(document.getElementById('initialOverall').value) || 0,
         potential: parseInt(document.getElementById('potential').value) || 0,
         age: parseInt(document.getElementById('age').value) || 0,
     // store contractEnd as Number when possible; leave empty string as ''
