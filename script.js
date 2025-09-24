@@ -2117,6 +2117,7 @@ function renderPlayersTable(groupedPlayers) {
                 <tr>
                     <th>Player</th>
                     <th>Role</th>
+                    <th>Init OVR</th>
                     <th>OVR</th>
                     <th>POT</th>
                     <th>Age</th>
@@ -2170,7 +2171,7 @@ function renderPlayersTable(groupedPlayers) {
             const groupClass = 'group-' + groupName.toLowerCase().replace(/\s+/g, '-');
             html += `
                 <tr class="position-group-row ${groupClass}">
-                    <td colspan="20" class="position-group-header">${groupName}</td>
+                    <td colspan="21" class="position-group-header">${groupName}</td>
                 </tr>
             `;
             
