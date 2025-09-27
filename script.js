@@ -1592,6 +1592,20 @@ function validateAndCleanSeasons(seasons) {
                     player.avgRating = parseFloat(player.avgRating) || 0;
                 }
 
+                // Ensure initialOverall is numeric when present and that overall is not lower than initialOverall
+                if (player.initialOverall !== undefined && player.initialOverall !== null && player.initialOverall !== '') {
+                    const initOV = Number(player.initialOverall);
+                    if (!isNaN(initOV)) {
+                        // normalize stored initialOverall to numeric
+                        player.initialOverall = initOV;
+                        const currentOV = Number(player.overall) || 0;
+                        if (initOV > currentOV) {
+                            // If initial overall is greater than current overall, set overall to initialOverall
+                            player.overall = initOV;
+                        }
+                    }
+                }
+
                 // Use the (possibly newly generated) player.id as the key in the rebuilt object
                 rebuiltPlayers[player.id] = player;
             });
@@ -2714,6 +2728,12 @@ function nextSeason() {
                     const newC = Math.max(0, Math.floor(c) - 1);
                     p.contractEnd = newC;
                 }
+            }
+            // Ensure initialOverall reflects the player's current overall when creating the next season
+            try {
+                p.initialOverall = Number(p.overall) || 0;
+            } catch (e) {
+                p.initialOverall = 0;
             }
         });
     });
