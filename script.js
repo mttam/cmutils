@@ -1562,9 +1562,34 @@ function validateAndCleanSeasons(seasons) {
                 toBuyClub: [],
                 toBuyReleased: []
             };
+        } else {
+            // Fix purely numeric IDs in transfers array objects
+            Object.values(season.transfers).forEach(list => {
+                if (Array.isArray(list)) {
+                    list.forEach(item => {
+                        if (item && item.id) {
+                            item.id = String(item.id);
+                            if (/^\d+$/.test(item.id)) {
+                                item.id = 'p_' + item.id;
+                            }
+                        }
+                    });
+                }
+            });
         }
     // Ensure notes structure exists
     if (!season.notes) season.notes = [];
+
+    // Ensure playerAwards structure exists and fix numeric playerIds
+    if (!season.playerAwards) season.playerAwards = [];
+    season.playerAwards.forEach(award => {
+        if (award && award.playerId) {
+            award.playerId = String(award.playerId);
+            if (/^\d+$/.test(award.playerId)) {
+                award.playerId = 'p_' + award.playerId;
+            }
+        }
+    });
         
         // Validate and clean players
         ['main_squad', 'youth_academy'].forEach(squadType => {
@@ -1576,6 +1601,11 @@ function validateAndCleanSeasons(seasons) {
 
                 // If player object doesn't have an id, generate one.
                 if (!player.id) player.id = generateId();
+                
+                player.id = String(player.id);
+                if (/^\d+$/.test(player.id)) {
+                    player.id = 'p_' + player.id;
+                }
 
                 if (!player.firstName) player.firstName = 'Unknown';
                 if (!player.lastName) player.lastName = 'Player';
